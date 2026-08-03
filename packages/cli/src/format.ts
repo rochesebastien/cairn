@@ -20,8 +20,29 @@ export function paintStatus(status: StoneStatus, text: string = status): string 
 }
 
 /** ULIDs are 26 chars; a short form is enough for a human to disambiguate. */
-export function shortId(id: string, length = 8): string {
+export function shortId(id: string, length = SHORT_ID_MIN): string {
   return id.slice(0, length);
+}
+
+/** Shortest id the CLI will ever print. */
+export const SHORT_ID_MIN = 8;
+
+/**
+ * Abbreviate a set of ids the way git abbreviates hashes: the shortest prefix
+ * that is still unique across the set, never below SHORT_ID_MIN.
+ *
+ * This is not cosmetic. A ULID begins with 10 characters of timestamp, so its
+ * first 8 characters only resolve to ~256 ms — two stones raised in the same
+ * breath share them. A printed id that cannot be typed back into `cairn show`
+ * would make the list useless for anyone managing a cairn by hand.
+ */
+export function abbreviateIds(ids: readonly string[], min = SHORT_ID_MIN): (id: string) => string {
+  const longest = ids.reduce((max, id) => Math.max(max, id.length), min);
+  let length = min;
+  while (length < longest && new Set(ids.map((id) => id.slice(0, length))).size < ids.length) {
+    length += 1;
+  }
+  return (id: string) => id.slice(0, length);
 }
 
 const ANSI = /\u001B\[[0-9;]*m/g;

@@ -52,8 +52,16 @@ export function tokenize(commandLine: string): string[] {
   for (let i = 0; i < commandLine.length; i += 1) {
     const char = commandLine[i] as string;
     if (quote) {
-      if (char === quote) quote = null;
-      else current += char;
+      // A backslash only escapes the closing quote; everything else is literal
+      // so Windows paths ("C:\proofs\run.mjs") survive untouched.
+      if (char === "\\" && commandLine[i + 1] === quote) {
+        current += quote;
+        i += 1;
+      } else if (char === quote) {
+        quote = null;
+      } else {
+        current += char;
+      }
       continue;
     }
     if (char === '"' || char === "'") {

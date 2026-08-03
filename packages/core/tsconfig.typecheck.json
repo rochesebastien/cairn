@@ -1,0 +1,12 @@
+{
+  // Typecheck-only project: same compiler settings as the build, but it also
+  // covers tests and the vitest config, which never ship to dist/.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "declaration": false,
+    "sourceMap": false,
+    "rootDir": "."
+  },
+  "include": ["src/**/*.ts", "test/**/*.ts", "vitest.config.ts"]
+}

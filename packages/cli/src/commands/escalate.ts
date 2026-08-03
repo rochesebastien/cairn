@@ -43,7 +43,7 @@ export async function escalateCommand(
   } catch (cause) {
     if (cause instanceof IllegalTransitionError) {
       throw new CliError(
-        `Cannot escalate a ${file.stone.status} stone`,
+        `Cannot escalate a stone whose status is ${file.stone.status}`,
         {
           details: [
             `${shortId(file.stone.id)} can only move to: ${legalTransitions(file.stone.status).join(", ") || "nothing, it is terminal"}`,

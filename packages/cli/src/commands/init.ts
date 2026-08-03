@@ -33,7 +33,13 @@ const CONFIG_TEMPLATE = `/**
  * @cairn/core.
  */
 export default {
-  /** How to start the app the proofs run against. */
+  /**
+   * How to start the app the proofs run against. Cairn does not start it
+   * itself: it exports the command as CAIRN_START (and baseURL as
+   * CAIRN_BASE_URL) so your playwright.config can own the lifecycle:
+   *
+   *   webServer: { command: process.env.CAIRN_START, url: process.env.CAIRN_BASE_URL }
+   */
   start: "npm run dev",
 
   /** Where the proofs point. Also exported to proofs as CAIRN_BASE_URL. */

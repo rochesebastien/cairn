@@ -70,26 +70,42 @@ function worse(a: SpecStatus | undefined, b: SpecStatus): SpecStatus {
   return rank[b] > rank[a] ? b : a;
 }
 
-/** Fold one spec's test results into a single status. */
+/**
+ * Fold one spec's test results into a single status.
+ *
+ * Playwright reports two levels: `test.status` is the *outcome*
+ * ("expected" | "unexpected" | "flaky" | "skipped") and `results[].status` is
+ * one attempt ("passed" | "failed" | "timedOut" | ...). The outcome wins, so a
+ * flaky proof that failed once and passed on the retry counts as green — the
+ * runner already applied the project's `retries` policy.
+ */
 function specStatus(spec: RawSpec): SpecStatus {
-  const statuses: string[] = [];
-  for (const test of spec.tests ?? []) {
-    if (test.status) statuses.push(test.status);
-    for (const result of test.results ?? []) {
-      if (result.status) statuses.push(result.status);
-    }
-  }
-
   if (spec.ok === false) return "failed";
-  if (statuses.some((status) => status === "unexpected" || status === "failed" || status === "timedOut")) {
-    return "failed";
-  }
-  if (statuses.length > 0 && statuses.every((status) => status === "skipped")) return "skipped";
-  if (spec.ok === true) return "passed";
-  if (statuses.some((status) => status === "expected" || status === "passed" || status === "flaky")) {
+
+  const outcomes = (spec.tests ?? [])
+    .map((test) => test.status)
+    .filter((status): status is string => Boolean(status));
+
+  if (outcomes.length > 0) {
+    if (outcomes.includes("unexpected")) return "failed";
+    if (outcomes.every((status) => status === "skipped")) return "skipped";
     return "passed";
   }
-  return "skipped";
+
+  const attempts = (spec.tests ?? [])
+    .flatMap((test) => test.results ?? [])
+    .map((result) => result.status)
+    .filter((status): status is string => Boolean(status));
+
+  if (attempts.length > 0) {
+    if (attempts.some((status) => status === "failed" || status === "timedOut" || status === "interrupted")) {
+      return "failed";
+    }
+    if (attempts.every((status) => status === "skipped")) return "skipped";
+    return "passed";
+  }
+
+  return spec.ok === true ? "passed" : "skipped";
 }
 
 /**
@@ -153,6 +169,8 @@ export interface ProofRunOptions {
   runner?: string;
   retries?: number;
   baseURL?: string;
+  /** Config `start`, exported as CAIRN_START for playwright's webServer. */
+  start?: string;
   env?: NodeJS.ProcessEnv;
   onOutput?: (chunk: string) => void;
 }
@@ -196,6 +214,9 @@ export async function runProofs(options: ProofRunOptions): Promise<ProofRunOutco
       CAIRN_REPORT_PATH: reportPath,
       CAIRN_SPECS: options.specs.join(path.delimiter),
       ...(options.baseURL ? { CAIRN_BASE_URL: options.baseURL, PLAYWRIGHT_BASE_URL: options.baseURL } : {}),
+      // The project's playwright.config owns the app lifecycle; Cairn only
+      // tells it what the config says to start.
+      ...(options.start ? { CAIRN_START: options.start } : {}),
     };
 
     const args = [

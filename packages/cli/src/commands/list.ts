@@ -3,13 +3,13 @@ import { STONE_STATUSES, type Stone, type StoneFile, type StoneStatus } from "@c
 import pc from "picocolors";
 import { EXIT, usageError } from "../errors.js";
 import {
+  abbreviateIds,
   paintStatus,
   printInfo,
   printJson,
   printWarn,
   relativeDate,
   renderTable,
-  shortId,
   statusMark,
 } from "../format.js";
 import type { Io } from "../io.js";
@@ -90,9 +90,13 @@ export async function listCommand(io: Io, options: ListOptions = {}): Promise<nu
     return EXIT.OK;
   }
 
+  // Abbreviate against the whole cairn, not the filtered view, so a printed id
+  // still resolves when it is typed back into `cairn show`.
+  const abbreviate = abbreviateIds(stones.map(({ stone }) => stone.id));
+
   const rows = selected.map(({ stone }) => [
     paintStatus(stone.status, `${statusMark(stone.status)} ${stone.status}`),
-    options.long ? stone.id : shortId(stone.id),
+    options.long ? stone.id : abbreviate(stone.id),
     stone.title,
     stone.surface ?? pc.dim("—"),
     stone.acceptance.length > 0 ? String(stone.acceptance.length) : pc.dim("0"),

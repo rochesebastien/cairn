@@ -15,13 +15,60 @@ export interface Io {
   question(prompt: string): Promise<string>;
 }
 
+/**
+ * True once a downstream reader has hung up (`cairn list | head -3`).
+ * Module-level because it is a property of this process's stdio, not of a
+ * particular Io instance.
+ */
+let downstreamClosed = false;
+let epipeHandled = false;
+
+function isEpipe(error: unknown): boolean {
+  return (error as NodeJS.ErrnoException | null)?.code === "EPIPE";
+}
+
+/**
+ * Node reports a write to a closed pipe as an asynchronous `error` event, which
+ * is fatal when nobody listens — so `cairn show <id> | head` used to die with an
+ * EPIPE stack trace instead of printing the first lines. A reader that stopped
+ * reading is not a Cairn failure: remember it, stop writing, and let the command
+ * still return its real exit code (`cairn verify | head` must keep exiting 1).
+ */
+function absorbEpipe(): void {
+  if (epipeHandled) return;
+  epipeHandled = true;
+  for (const stream of [process.stdout, process.stderr]) {
+    stream.on("error", (error: unknown) => {
+      if (isEpipe(error)) {
+        downstreamClosed = true;
+        return;
+      }
+      // Anything else is a genuine stdio failure: crash as we always did.
+      process.nextTick(() => {
+        throw error;
+      });
+    });
+  }
+}
+
+function write(stream: NodeJS.WriteStream, line: string): void {
+  if (downstreamClosed || stream.destroyed) return;
+  try {
+    stream.write(`${line}\n`);
+  } catch (error) {
+    if (!isEpipe(error)) throw error;
+    downstreamClosed = true;
+  }
+}
+
 export function defaultIo(): Io {
+  absorbEpipe();
   return {
     out(line = "") {
-      process.stdout.write(`${line}\n`);
+      write(process.stdout, line);
     },
     err(line = "") {
-      process.stderr.write(`${line}\n`);
+      write(process.stderr, line);
     },
     async readStdin() {
       const chunks: Buffer[] = [];

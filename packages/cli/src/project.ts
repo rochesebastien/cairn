@@ -6,6 +6,7 @@ import {
   DEFAULT_STONES_DIR,
   formatIssues,
   listStones,
+  normalizeUlid,
   readStoneById,
   safeParseCairnConfig,
   type CairnConfig,
@@ -172,15 +173,52 @@ export async function readAllStones(project: Project): Promise<StoneCollection> 
   return { stones, skipped };
 }
 
-/** Read one stone by id, with a helpful error when it does not exist. */
-export async function readOneStone(project: Project, id: string): Promise<StoneFile> {
-  try {
-    return await readStoneById(project.stonesDir, id);
-  } catch (cause) {
-    throw usageError(`No stone with id ${id}`, [
-      `Looked in ${path.relative(project.root, project.stonesDir) || project.stonesDir}`,
-    ]);
+/**
+ * Resolve what a human typed to a full stone id.
+ *
+ * `cairn list` prints 8-character short ids, so those short ids have to be
+ * accepted back: anything that is a unique prefix of exactly one stone wins.
+ * An ambiguous prefix is refused with the candidates rather than guessed at.
+ */
+export function resolveStoneId(known: readonly string[], query: string): string {
+  const wanted = normalizeUlid(query);
+  if (known.includes(wanted)) return wanted;
+
+  const matches = known.filter((id) => id.startsWith(wanted));
+  if (matches.length === 1) return matches[0]!;
+  if (matches.length > 1) {
+    throw usageError(
+      `Ambiguous stone id ${wanted}: ${matches.length} stones start with it`,
+      matches.map((id) => `  ${id}`).concat("Pass more characters, or `cairn list --long`."),
+    );
   }
+  throw usageError(`No stone with id ${wanted}`, []);
+}
+
+/** Read one stone by full id or unique prefix, with a helpful error when there is none. */
+export async function readOneStone(project: Project, id: string): Promise<StoneFile> {
+  const where = `Looked in ${path.relative(project.root, project.stonesDir) || project.stonesDir}`;
+  try {
+    return await readStoneById(project.stonesDir, normalizeUlid(id));
+  } catch {
+    // Not a full id: it may still be a short id copied out of `cairn list`.
+  }
+
+  const { stones } = await readAllStones(project);
+  let resolved: string;
+  try {
+    resolved = resolveStoneId(
+      stones.map((file) => file.stone.id),
+      id,
+    );
+  } catch (error) {
+    if (error instanceof CliError) throw usageError(error.message, [...error.details, where]);
+    throw error;
+  }
+
+  const found = stones.find((file) => file.stone.id === resolved);
+  if (!found) throw usageError(`No stone with id ${normalizeUlid(id)}`, [where]);
+  return found;
 }
 
 export async function fileExists(target: string): Promise<boolean> {
