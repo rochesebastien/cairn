@@ -1,0 +1,13 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "What the Cairn window is allowed to do: pick a folder, read the registry, open a trace with the system handler. Nothing writes to .cairn/ from here — the warden owns it.",
+  "windows": ["main"],
+  "permissions": [
+    "core:default",
+    "core:event:default",
+    "dialog:allow-open",
+    "fs:allow-exists",
+    "shell:allow-open"
+  ]
+}
