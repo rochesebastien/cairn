@@ -19,16 +19,11 @@ function Svg({ children, className }: IconProps & { children: React.ReactNode })
   );
 }
 
-/** The brand mark: three stones stacked on a trail. */
+import cairnMarkUrl from "../assets/cairn-icon.svg";
+
+/** The brand mark: the Cairn logo glyph. Black source, inverted to white by CSS in the dark theme. */
 export function CairnMark({ className }: IconProps): JSX.Element {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <ellipse cx="12" cy="19.2" rx="7.6" ry="2.4" fill="currentColor" opacity="0.9" />
-      <ellipse cx="12" cy="13.6" rx="5.5" ry="2.2" fill="currentColor" opacity="0.7" />
-      <ellipse cx="12" cy="8.6" rx="3.7" ry="1.9" fill="currentColor" opacity="0.5" />
-      <ellipse cx="12" cy="4.4" rx="2.1" ry="1.5" fill="currentColor" opacity="0.32" />
-    </svg>
-  );
+  return <img className={className} src={cairnMarkUrl} alt="" aria-hidden="true" />;
 }
 
 export function ReviewIcon({ className }: IconProps): JSX.Element {

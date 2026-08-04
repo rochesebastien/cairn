@@ -29,7 +29,14 @@
   "bundle": {
     "active": true,
     "targets": ["deb", "appimage", "dmg"],
-    "icon": ["icons/32x32.png", "icons/128x128.png", "icons/128x128@2x.png", "icons/icon.png"],
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico",
+      "icons/icon.png"
+    ],
     "category": "DeveloperTool",
     "shortDescription": "Read the stones, approve the drafts, watch the proofs.",
     "longDescription": "Cairn is a feature registry for agent-assisted development. The desktop app is where a human reads the drafts a mason raised, follows the proofs a warden wrote, and decides what to do with an escalation."

@@ -238,7 +238,13 @@ pre {
   width: 26px;
   height: 26px;
   flex: none;
-  color: var(--accent);
+  object-fit: contain;
+  /* The glyph is black; the dark canvas needs it white. */
+  filter: invert(1);
+}
+
+[data-theme="light"] .brand-mark {
+  filter: none;
 }
 
 .brand-name {
