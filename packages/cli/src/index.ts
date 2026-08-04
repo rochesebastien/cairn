@@ -22,6 +22,7 @@ export {
   readAllStones,
   readFileOrNull,
   readOneStone,
+  resolveStoneId,
   requireCairn,
   type LoadProjectOptions,
   type Project,
@@ -56,6 +57,7 @@ export { currentCommit } from "./git.js";
 export {
   lintContent,
   mergeContent,
+  parseJsonPayload,
   promptForContent,
   readJsonPayload,
   resolveContent,

@@ -11,6 +11,14 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
+    "./schema": {
+      "types": "./dist/schema.d.ts",
+      "default": "./dist/schema.js"
+    },
+    "./stone-parse": {
+      "types": "./dist/stone-parse.d.ts",
+      "default": "./dist/stone-parse.js"
+    },
     "./package.json": "./package.json"
   },
   "files": [
@@ -22,7 +30,7 @@
     "clean": "node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true})\"",
     "test": "vitest run",
     "test:watch": "vitest",
-    "typecheck": "tsc -p tsconfig.json --noEmit --declaration false --sourceMap false"
+    "typecheck": "tsc -p tsconfig.typecheck.json"
   },
   "dependencies": {
     "ulid": "^2.3.0",

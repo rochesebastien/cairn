@@ -84,7 +84,11 @@ function asNumber(value: unknown, field: string): number | undefined {
 export async function readJsonPayload(io: Io): Promise<StoneContent> {
   const raw = (await io.readStdin()).trim();
   if (!raw) throw usageError("--json expects a JSON payload on stdin, but stdin was empty");
+  return parseJsonPayload(raw);
+}
 
+/** Parse a JSON payload string into stone content. */
+export function parseJsonPayload(raw: string): StoneContent {
   let payload: JsonPayload;
   try {
     payload = JSON.parse(raw) as JsonPayload;
@@ -175,11 +179,20 @@ export function mergeContent(base: StoneContent, flags: ContentFlags): StoneCont
   };
 }
 
-/** Resolve content from flags + optional stdin payload + optional prompt. */
+/**
+ * Resolve content from flags + optional stdin payload + optional prompt.
+ *
+ * `--json` means "answer in JSON, and take a payload from stdin if there is
+ * one": an agent that already has everything in flags must not be forced to
+ * pipe an empty object in, and a `--json` run from a terminal must never hang
+ * waiting on a stdin nobody is going to write to.
+ */
 export async function resolveContent(io: Io, flags: ContentFlags): Promise<StoneContent> {
-  const base: StoneContent = flags.json
-    ? await readJsonPayload(io)
-    : { intent: "", acceptance: [] };
+  let base: StoneContent = { intent: "", acceptance: [] };
+  if (flags.json && !io.isTTY) {
+    const raw = (await io.readStdin()).trim();
+    if (raw) base = parseJsonPayload(raw);
+  }
 
   let content = mergeContent(base, flags);
 

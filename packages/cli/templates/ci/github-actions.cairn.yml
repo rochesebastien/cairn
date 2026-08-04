@@ -1,0 +1,261 @@
+# =============================================================================
+# cairn: THE RATCHET (GitHub Actions) — reusable workflow
+# =============================================================================
+#
+# Copy this file into your project as .github/workflows/cairn.yml, then call it
+# from the workflow that gates your pull requests:
+#
+#   # .github/workflows/pr.yml
+#   name: PR
+#   on:
+#     pull_request:
+#     push:
+#       branches: [main]
+#   jobs:
+#     cairn:
+#       uses: ./.github/workflows/cairn.yml
+#       with:
+#         install-command: "npm ci"
+#         # setup-command: ""   # prefer `setup:` in cairn.config.ts
+#
+# WHAT THIS WORKFLOW IS
+# ---------------------
+# It replays the proofs of every *proven* stone. A proven stone is a feature a
+# human already accepted and a warden already greened. If one of those proofs
+# goes red on a pull request, the pull request has broken a feature that was
+# working. The job goes red, and the merge is blocked.
+#
+# THERE IS NO CONFIGURABLE EXCEPTION.
+#
+# No continue-on-error, no `[skip cairn]`, no bypass input. None of them exist,
+# and adding one defeats the entire point of the registry: a proof that can be
+# waived is not a proof. Note that the inputs below are about HOW to install and
+# seed — never about WHETHER the ratchet applies.
+#
+# The only legitimate way to land a pull request that turns a proven stone red
+# is to AMEND THE STONE IN THE SAME PULL REQUEST. Amending says, in the registry
+# itself: "the intent changed, here is the new intent, the old stone is
+# retired". The old proof leaves the suite in the same movement, the new stone
+# is a draft, and --proven-only stops replaying it. That is a recorded decision,
+# reviewable in the diff — not a bypass.
+#
+#   cairn amend <id> --title "..." --acceptance "..." --request "<the ask>"
+#
+# Deleting or neutering the proof is NOT one of the options. It is detected by
+# the integrity job below and it is treated as tampering.
+#
+# Make both jobs required in branch protection, or the ratchet is decorative.
+# See docs/ci.md for the full protocol.
+# =============================================================================
+
+name: cairn
+
+on:
+  workflow_call:
+    inputs:
+      node-version:
+        description: "Node version used to run the proofs."
+        type: string
+        default: "22"
+      runs-on:
+        description: "Runner label."
+        type: string
+        default: ubuntu-latest
+      working-directory:
+        description: "Directory holding cairn.config.ts (the project root)."
+        type: string
+        default: "."
+      install-command:
+        description: >-
+          Lockfile-exact install. npm -> "npm ci",
+          pnpm -> "corepack enable && pnpm install --frozen-lockfile",
+          yarn -> "corepack enable && yarn install --immutable".
+        type: string
+        default: "npm ci"
+      setup-command:
+        description: >-
+          Extra seed/fixture step for state cairn cannot own (a database
+          service migration, an external fixture upload, ...). PREFER setting
+          `setup: "npm run seed"` in cairn.config.ts: `cairn verify` runs that
+          hook itself before the proofs, so the same reproducible state is used
+          locally and in CI. Leave empty unless you need both.
+        type: string
+        default: ""
+      base-url:
+        description: "Where the app under proof answers. Must match cairn.config.ts baseURL."
+        type: string
+        default: "http://127.0.0.1:3000"
+      browsers:
+        description: "Playwright browsers to install."
+        type: string
+        default: "chromium"
+      artifact-retention-days:
+        description: >-
+          How long traces and reports survive. Long enough for a weekend and a
+          review round, short enough not to fill the artifact store.
+        type: number
+        default: 14
+      timeout-minutes:
+        description: "Hard cap on the proof run."
+        type: number
+        default: 30
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cairn-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ===========================================================================
+  # THE RATCHET
+  # ===========================================================================
+  verify:
+    name: cairn verify (proven-only)
+    runs-on: ${{ inputs.runs-on }}
+    timeout-minutes: ${{ inputs.timeout-minutes }}
+
+    defaults:
+      run:
+        working-directory: ${{ inputs.working-directory }}
+
+    env:
+      CAIRN_BASE_URL: ${{ inputs.base-url }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node-version }}
+
+      - name: Install
+        run: ${{ inputs.install-command }}
+
+      # Browsers and their system dependencies. Pinned by the @playwright/test
+      # version in your lockfile, so this stays in step with the proofs.
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps ${{ inputs.browsers }}
+
+      # Optional, and usually unnecessary: see the input description.
+      - name: Seed
+        if: inputs.setup-command != ''
+        run: ${{ inputs.setup-command }}
+
+      # -----------------------------------------------------------------------
+      # --proven-only is what makes this a ratchet and not a test suite: draft
+      # stones (not yet accepted) and retired stones (superseded) are never
+      # replayed, so work in progress cannot block a merge and a retired proof
+      # cannot resurrect itself. Only what was already proven is defended.
+      #
+      # Exit codes are a contract:
+      #   0 -> every proven stone still holds
+      #   1 -> a proof went red, or the integrity audit failed  => MERGE BLOCKED
+      #   2 -> cairn refused the invocation (bad usage/config)  => THE JOB IS
+      #        MISCONFIGURED, not the code. Fix the workflow, not the stones.
+      #
+      # The JSON report is written to cairn-verify.json and uploaded below, so
+      # triage (and the cairn-triage skill) can read the run without scraping
+      # the log. The exit code is propagated verbatim.
+      # -----------------------------------------------------------------------
+      - name: cairn verify --all --proven-only
+        id: ratchet
+        run: |
+          code=0
+          npx cairn verify --all --proven-only --json > cairn-verify.json || code=$?
+          cat cairn-verify.json || true
+          exit $code
+
+      # `if: always()` is not optional: the artifacts of a RED run are the whole
+      # point. A green run leaves almost nothing behind; a red one leaves the
+      # trace that turns "something failed" into "this stone, this criterion".
+      - name: Upload proof artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cairn-${{ github.sha }}
+          retention-days: ${{ inputs.artifact-retention-days }}
+          if-no-files-found: ignore
+          path: |
+            ${{ inputs.working-directory }}/test-results/
+            ${{ inputs.working-directory }}/playwright-report/
+            ${{ inputs.working-directory }}/cairn-verify.json
+
+  # ===========================================================================
+  # TAMPER AUDIT
+  # ===========================================================================
+  # The cheap guard against the fourth, illegitimate "outcome": editing or
+  # deleting a proof so the ratchet stops complaining. Runs no browser and no
+  # app — it only re-hashes every proof on disk and compares it with the hash
+  # recorded when the stone last went green. Seconds, not minutes.
+  #
+  # A mismatch means the proof of a proven stone changed without a green run.
+  # That is either tampering or a proof edited by a coder agent that should
+  # never have had write access to .cairn/ in the first place.
+  integrity:
+    name: cairn verify --integrity --no-run
+    runs-on: ${{ inputs.runs-on }}
+    timeout-minutes: 10
+
+    defaults:
+      run:
+        working-directory: ${{ inputs.working-directory }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node-version }}
+
+      - name: Install
+        run: ${{ inputs.install-command }}
+
+      - name: Audit proof hashes
+        run: |
+          code=0
+          npx cairn verify --integrity --no-run --json > cairn-integrity.json || code=$?
+          cat cairn-integrity.json || true
+          exit $code
+
+      - name: Upload integrity report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cairn-integrity-${{ github.sha }}
+          retention-days: ${{ inputs.artifact-retention-days }}
+          if-no-files-found: ignore
+          path: ${{ inputs.working-directory }}/cairn-integrity.json
+
+# =============================================================================
+# RETRY POLICY — there is deliberately no retry configuration in this file.
+# =============================================================================
+# A proof is meant to be deterministic. Retries do not make a proof more true,
+# they only make an untrue proof quieter. So:
+#
+#   * Retry proofs AT MOST TWICE, and do it in cairn.config.ts, not here:
+#
+#       // cairn.config.ts
+#       export default {
+#         baseURL: "http://127.0.0.1:3000",
+#         retries: 2,   // <- Playwright-level, per proof, capped at 2
+#       };
+#
+#     `cairn verify` passes that through as `--retries=2`, and a proof that
+#     needed a retry is reported as flaky by Playwright — visible, countable,
+#     and quarantinable (see the flakiness policy in docs/ci.md).
+#
+#   * NEVER re-run a red ratchet job to make it green. "Re-run failed jobs" on
+#     a red `cairn verify` is the GitHub equivalent of an infinite retry: it
+#     hides the red and destroys the signal the ratchet exists to produce.
+#     Retrying is defensible only for infrastructure failures (runner died,
+#     registry timeout) — never for the outcome of the proofs.
+#
+#   * A proof that flips green/red with no code change is not a retry problem.
+#     It is quarantined and sent back to the warden for a rewrite.
+# =============================================================================

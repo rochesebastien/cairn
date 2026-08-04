@@ -16,12 +16,12 @@ import {
 import pc from "picocolors";
 import { CliError, EXIT, usageError } from "../errors.js";
 import {
+  abbreviateIds,
   paintStatus,
   printInfo,
   printJson,
   printOk,
   printWarn,
-  shortId,
   statusMark,
 } from "../format.js";
 import { currentCommit } from "../git.js";
@@ -34,7 +34,15 @@ import {
   type ProofRunOutcome,
 } from "../playwright.js";
 import { runCommandLine } from "../proc.js";
-import { fileExists, loadProject, readAllStones, readFileOrNull, requireCairn, type Project } from "../project.js";
+import {
+  fileExists,
+  loadProject,
+  readAllStones,
+  readFileOrNull,
+  requireCairn,
+  resolveStoneId,
+  type Project,
+} from "../project.js";
 
 export interface VerifyOptions {
   dir?: string;
@@ -80,6 +88,7 @@ export async function verifyCommand(
   const { stones, skipped } = await readAllStones(project);
   if (!options.json) for (const problem of skipped) printWarn(io, `unreadable stone ${problem}`);
 
+  const abbreviate = abbreviateIds(stones.map(({ stone }) => stone.id));
   const selected = selectStones(stones, ids, options);
   if (selected.length === 0) {
     const message = ids.length > 0 ? "none of those stones can be verified" : "nothing to verify";
@@ -126,6 +135,7 @@ export async function verifyCommand(
       runner: options.runner,
       retries: project.config.retries,
       baseURL: project.config.baseURL,
+      ...(project.config.start ? { start: project.config.start } : {}),
       onOutput: options.verbose && !options.json ? (chunk) => io.err(chunk.replace(/\n$/, "")) : undefined,
     });
 
@@ -230,6 +240,7 @@ export async function verifyCommand(
       commit: commit ?? null,
       dryRun: Boolean(options.dryRun),
       results: rows,
+      ...(skipped.length > 0 ? { unreadable: skipped } : {}),
       integrity: options.integrity
         ? [...integrityReports.entries()].map(([id, entry]) => ({ id, ...entry }))
         : undefined,
@@ -253,7 +264,7 @@ export async function verifyCommand(
         : `${pc.dim(row.from)} ${pc.dim("→")} ${paintStatus(row.to, row.to)}`;
     const mark = paintStatus(row.to, statusMark(row.to));
     const reason = row.reason ? pc.dim(`  ${row.reason}`) : "";
-    io.out(`${mark} ${pc.dim(shortId(row.id))}  ${row.title}  ${move}${reason}`);
+    io.out(`${mark} ${pc.dim(abbreviate(row.id))}  ${row.title}  ${move}${reason}`);
     if (row.integrity && !row.integrity.ok) {
       io.out(`  ${pc.red("integrity")} ${pc.dim(row.integrity.message)}`);
     }
@@ -323,10 +334,11 @@ export function selectStones(
 
   let selected: StoneFile[];
   if (ids.length > 0) {
+    // Short ids printed by `cairn list` must be accepted back here too.
+    const known = files.map((file) => file.stone.id);
     selected = ids.map((raw) => {
-      const id = normalizeUlid(raw);
-      const file = byId.get(id);
-      if (!file) throw usageError(`No stone with id ${id}`);
+      const file = byId.get(resolveStoneId(known, raw));
+      if (!file) throw usageError(`No stone with id ${normalizeUlid(raw)}`);
       return file;
     });
   } else {

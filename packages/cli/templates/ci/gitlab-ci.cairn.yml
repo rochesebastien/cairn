@@ -1,0 +1,215 @@
+# =============================================================================
+# cairn: THE RATCHET (GitLab CI)
+# =============================================================================
+#
+# Copy this file into your project (e.g. .gitlab/ci/cairn.yml) and include it
+# from your root .gitlab-ci.yml:
+#
+#   include:
+#     - local: .gitlab/ci/cairn.yml
+#
+# WHAT THIS JOB IS
+# ----------------
+# It replays the proofs of every *proven* stone. A proven stone is a feature a
+# human already accepted and a warden already greened. If one of those proofs
+# goes red on a merge request, the merge request has broken a feature that was
+# working. The job goes red, and the merge is blocked.
+#
+# THERE IS NO CONFIGURABLE EXCEPTION.
+#
+# No allow_failure, no `[skip cairn]` commit trailer, no CAIRN_BYPASS variable,
+# no "just this once" flag. None of those exist, and adding one defeats the
+# entire point of the registry: a proof that can be waived is not a proof.
+#
+# The only legitimate way to land a merge request that turns a proven stone red
+# is to AMEND THE STONE IN THE SAME MERGE REQUEST. Amending says, in the
+# registry itself: "the intent changed, here is the new intent, the old stone is
+# retired". The old proof leaves the suite in the same movement, the new stone
+# is a draft, and --proven-only stops replaying it. That is a recorded decision,
+# reviewable in the diff — not a bypass.
+#
+#   cairn amend <id> --title "..." --acceptance "..." --request "<the ask>"
+#
+# Deleting or neutering the proof is NOT one of the options. It is detected by
+# `cairn verify --integrity --no-run` (see the guard job at the bottom of this
+# file) and it is treated as tampering.
+#
+# See docs/ci.md for the full protocol: how to read a red in under a minute,
+# the three legitimate outcomes, and the flakiness policy.
+# =============================================================================
+
+variables:
+  # Where the app under proof answers. Must match `baseURL` in cairn.config.ts.
+  CAIRN_BASE_URL: "http://127.0.0.1:3000"
+  # Keep the package manager store inside the workspace so it can be cached.
+  npm_config_cache: "$CI_PROJECT_DIR/.npm"
+
+# Drop this block if your root .gitlab-ci.yml already declares `stages:` — an
+# included `stages:` replaces it, and both jobs below only need a stage that
+# runs after the build.
+stages:
+  - test
+
+"cairn:verify":
+  stage: test
+
+  # The Playwright image ships the browsers and their system dependencies.
+  # Pin the tag to the Playwright version in your package.json — a mismatch
+  # between the image browsers and the installed @playwright/test is the
+  # single most common source of "works locally, red in CI".
+  image: mcr.microsoft.com/playwright:v1.49.1-noble
+
+  rules:
+    # The ratchet exists for merge requests: this is the gate.
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    # And on the default branch, so a broken main is noticed immediately.
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+  cache:
+    key:
+      files:
+        - package-lock.json
+    paths:
+      - .npm/
+    policy: pull-push
+
+  before_script:
+    # 1. Install. Use the lockfile-exact form of your package manager:
+    #      npm  -> npm ci
+    #      pnpm -> corepack enable && pnpm install --frozen-lockfile
+    #      yarn -> corepack enable && yarn install --immutable
+    - npm ci
+
+    # 2. Browsers. Already present in the Playwright image above; uncomment if
+    #    you run this job on a plain node image instead.
+    # - npx playwright install --with-deps chromium
+
+  script:
+    # 3. Seed / fixtures.
+    #
+    #    PREFERRED: set `setup: "npm run seed"` in cairn.config.ts. `cairn
+    #    verify` runs that hook itself, before the proofs, with CAIRN_BASE_URL
+    #    exported — which means the same reproducible state is used locally and
+    #    in CI, and there is nothing to keep in sync here.
+    #
+    #    Only uncomment the line below for state cairn cannot own (a database
+    #    service migration, an external fixture upload, ...). Do not duplicate
+    #    the config hook here.
+    # - npm run seed
+
+    # 4. The ratchet itself.
+    #
+    #    --proven-only is what makes this a ratchet and not a test suite: draft
+    #    stones (not yet accepted) and retired stones (superseded) are never
+    #    replayed, so work in progress cannot block a merge and a retired proof
+    #    cannot resurrect itself. Only what was already proven is defended.
+    #
+    #    Exit codes are a contract:
+    #      0 -> every proven stone still holds
+    #      1 -> a proof went red, or the integrity audit failed  => MERGE BLOCKED
+    #      2 -> cairn refused the invocation (bad usage/config)  => THE JOB IS
+    #           MISCONFIGURED, not the code. Fix the pipeline, not the stones.
+    #
+    #    The JSON report is written to cairn-verify.json and attached below, so
+    #    triage (and the cairn-triage skill) can read the run without scraping
+    #    the log. The exit code is propagated verbatim.
+    - |
+      code=0
+      npx cairn verify --all --proven-only --json > cairn-verify.json || code=$?
+      cat cairn-verify.json || true
+      exit $code
+
+  artifacts:
+    # `when: always` is not optional: the artifacts of a RED run are the whole
+    # point. A green run leaves almost nothing behind; a red one leaves the
+    # trace that turns "something failed" into "this stone, this criterion".
+    when: always
+    # Long enough to survive a weekend and a review round, short enough not to
+    # fill the artifact store with traces nobody will ever open again.
+    expire_in: 2 weeks
+    name: "cairn-$CI_COMMIT_SHORT_SHA"
+    paths:
+      # Traces, screenshots and videos, one directory per failed test.
+      # Requires your playwright.config.ts to actually record them:
+      #   use: { trace: "retain-on-failure", screenshot: "only-on-failure" }
+      - test-results/
+      # The HTML report, if your playwright.config declares the html reporter.
+      - playwright-report/
+      # Cairn's own machine-readable verdict: one entry per stone, with the
+      # status move (proven -> broken) and the reason.
+      - cairn-verify.json
+    # Optional: surfaces failed proofs in the merge request widget. Requires
+    # a junit reporter in playwright.config.ts writing to this path.
+    # reports:
+    #   junit: junit-results.xml
+
+  # ---------------------------------------------------------------------------
+  # RETRY POLICY — deliberately commented out. Read this before uncommenting.
+  # ---------------------------------------------------------------------------
+  # A proof is meant to be deterministic. Retries do not make a proof more
+  # true, they only make an untrue proof quieter. So:
+  #
+  #   * Retry proofs AT MOST TWICE, and do it in cairn.config.ts, not here:
+  #
+  #       // cairn.config.ts
+  #       export default {
+  #         baseURL: "http://127.0.0.1:3000",
+  #         retries: 2,   // <- Playwright-level, per proof, capped at 2
+  #       };
+  #
+  #     `cairn verify` passes that through as `--retries=2`, and a proof that
+  #     needed a retry is reported as flaky by Playwright — visible, countable,
+  #     and quarantinable (see the flakiness policy in docs/ci.md).
+  #
+  #   * NEVER add a job-level retry for a script failure:
+  #
+  #       retry: 2          # <- FORBIDDEN. Re-runs the whole job, hides the
+  #                         #    red, and destroys the signal the ratchet exists
+  #                         #    to produce.
+  #
+  #     The only defensible job-level retry is scoped to infrastructure, never
+  #     to the outcome of the proofs:
+  #
+  #       retry:
+  #         max: 1
+  #         when:
+  #           - runner_system_failure
+  #           - stuck_or_timeout_failure
+  #
+  #   * A proof that flips green/red with no code change is not a retry
+  #     problem. It is quarantined and sent back to the warden for a rewrite.
+  #     Infinite retries masking the problem are forbidden.
+  # ---------------------------------------------------------------------------
+
+# =============================================================================
+# TAMPER AUDIT
+# =============================================================================
+# The cheap guard against the fourth, illegitimate "outcome": editing or
+# deleting a proof so the ratchet stops complaining. This job runs no browser
+# and no app — it only re-hashes every proof on disk and compares it with the
+# hash recorded when the stone last went green. Seconds, not minutes.
+#
+# A mismatch means the proof of a proven stone changed without a green run.
+# That is either tampering or a proof edited by a coder agent that should never
+# have had write access to .cairn/ in the first place.
+"cairn:integrity":
+  stage: test
+  image: node:22-bookworm-slim
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  before_script:
+    - npm ci
+  script:
+    # `--no-run` means no runner is ever spawned: this is a pure audit of
+    # sha256(proof on disk) against lastGreen.proofHash.
+    - |
+      code=0
+      npx cairn verify --integrity --no-run --json > cairn-integrity.json || code=$?
+      cat cairn-integrity.json || true
+      exit $code
+  artifacts:
+    when: always
+    expire_in: 2 weeks
+    paths:
+      - cairn-integrity.json

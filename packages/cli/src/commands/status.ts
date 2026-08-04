@@ -2,13 +2,13 @@ import { STONE_STATUSES, type StoneFile, type StoneStatus } from "@cairn/core";
 import pc from "picocolors";
 import { EXIT } from "../errors.js";
 import {
+  abbreviateIds,
   paintStatus,
   printInfo,
   printJson,
   printWarn,
   relativeDate,
   renderCounts,
-  shortId,
   statusMark,
 } from "../format.js";
 import type { Io } from "../io.js";
@@ -34,6 +34,7 @@ export async function statusCommand(io: Io, options: StatusOptions = {}): Promis
 
   const { stones, skipped } = await readAllStones(project);
   const counts = countByStatus(stones);
+  const abbreviate = abbreviateIds(stones.map(({ stone }) => stone.id));
 
   const drafts = stones.filter(({ stone }) => stone.status === "draft");
   const broken = stones.filter(({ stone }) => stone.status === "broken");
@@ -91,7 +92,7 @@ export async function statusCommand(io: Io, options: StatusOptions = {}): Promis
         stone.status === "broken" && stone.lastGreen
           ? pc.dim(`  last green ${relativeDate(stone.lastGreen.at)}`)
           : "";
-      io.out(`  ${pc.dim(shortId(stone.id))}  ${stone.title}${suffix}`);
+      io.out(`  ${pc.dim(abbreviate(stone.id))}  ${stone.title}${suffix}`);
     }
   }
 }
