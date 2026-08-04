@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { CairnSnapshot, FailureReport, StoneRecord } from "../lib/cairn.js";
 import { absoluteTime, relativeTime, shortId } from "../lib/format.js";
-import { Empty, StatusDot, SurfaceTag, ViewHeader } from "./bits.js";
+import { Empty, StatusLabel, StatusMark, SurfaceTag, ViewHeader } from "./bits.js";
 
 /** What an escalation action would do once it is wired to the MCP server. */
 const WIRING: Record<string, string> = {
@@ -69,7 +69,9 @@ function EscalationCard({
   return (
     <article className="escalation-card">
       <div className="review-head">
-        <StatusDot status={stone.status} />
+        <StatusMark status={stone.status} />
+        <StatusLabel status={stone.status} />
+        <span className="dot-sep">·</span>
         <span className="id-mono">{shortId(stone.id)}</span>
         <SurfaceTag surface={stone.surface} />
         <span className="dot-sep">·</span>
@@ -149,7 +151,7 @@ function EscalationCard({
   );
 }
 
-/** A unified diff, coloured with the status hues at text scale only. */
+/** A unified diff. No hues: the +/- column plus a contrast step carries it. */
 function Diff({ text }: { text: string }): JSX.Element {
   return (
     <div className="diff-block">

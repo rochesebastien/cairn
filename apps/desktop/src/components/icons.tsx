@@ -19,11 +19,97 @@ function Svg({ children, className }: IconProps & { children: React.ReactNode })
   );
 }
 
-import cairnMarkUrl from "../assets/cairn-icon.svg";
+import cairnLogoUrl from "../assets/cairn-logo.svg";
 
-/** The brand mark: the Cairn logo glyph. Black source, inverted to white by CSS in the dark theme. */
-export function CairnMark({ className }: IconProps): JSX.Element {
-  return <img className={className} src={cairnMarkUrl} alt="" aria-hidden="true" />;
+/**
+ * The brand: the complete lockup — stone glyph *and* the "Cairn" wordmark, one
+ * image. Never rebuild the wordmark as CSS text beside a glyph. The artwork is
+ * solid black, inverted to white by CSS in the dark theme.
+ */
+export function CairnLogo({ className }: IconProps): JSX.Element {
+  return <img className={className} src={cairnLogoUrl} alt="Cairn" />;
+}
+
+/* --------------------------------------------------------------- status marks */
+
+/**
+ * Status carries no colour. Each state is a distinct 12px monochrome glyph in
+ * `currentColor`; the class on the wrapper picks the greyscale step, and a text
+ * label rides alongside wherever there is room for one.
+ */
+
+type MarkProps = { className?: string | undefined };
+
+function Mark({ children, className }: MarkProps & { children: React.ReactNode }): JSX.Element {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 12 12"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.4"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      {children}
+    </svg>
+  );
+}
+
+/** draft — a dashed circle: no verdict has been passed yet. */
+export function DraftMark({ className }: MarkProps): JSX.Element {
+  return (
+    <Mark className={className}>
+      <circle cx="6" cy="6" r="4.6" strokeDasharray="2 2.1" />
+    </Mark>
+  );
+}
+
+/** proven — a filled circle with a check punched through it. */
+export function ProvenMark({ className }: MarkProps): JSX.Element {
+  return (
+    <svg className={className} viewBox="0 0 12 12" fill="none" aria-hidden="true">
+      <circle cx="6" cy="6" r="5.1" fill="currentColor" />
+      <path
+        d="M3.7 6.2 5.25 7.75 8.4 4.4"
+        stroke="var(--accent-fg)"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+/** broken — a circle with a cross through it. */
+export function BrokenMark({ className }: MarkProps): JSX.Element {
+  return (
+    <Mark className={className}>
+      <circle cx="6" cy="6" r="4.8" />
+      <path d="M4.3 4.3 7.7 7.7M7.7 4.3 4.3 7.7" />
+    </Mark>
+  );
+}
+
+/** escalated — a flag: this one is waiting on a human. */
+export function EscalatedMark({ className }: MarkProps): JSX.Element {
+  return (
+    <Mark className={className}>
+      <path d="M3.1 1.3v9.6" />
+      <path d="M3.1 2.1h6.2L8.1 4.2l1.2 2.1H3.1" />
+    </Mark>
+  );
+}
+
+/** retired — a struck circle: it left the suite. */
+export function RetiredMark({ className }: MarkProps): JSX.Element {
+  return (
+    <Mark className={className}>
+      <circle cx="6" cy="6" r="4.8" />
+      <path d="M2.9 9.1 9.1 2.9" />
+    </Mark>
+  );
 }
 
 export function ReviewIcon({ className }: IconProps): JSX.Element {

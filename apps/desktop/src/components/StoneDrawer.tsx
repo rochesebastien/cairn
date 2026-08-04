@@ -6,7 +6,7 @@ import { useProof } from "../lib/app-state.js";
 import { isTauri } from "../lib/tauri.js";
 import { absoluteTime, formatDuration, relativeTime, shortId } from "../lib/format.js";
 import { ExternalIcon, CloseIcon } from "./icons.js";
-import { StatusChip, StatusDot, SurfaceTag } from "./bits.js";
+import { StatusChip, StatusMark, SurfaceTag } from "./bits.js";
 
 /**
  * The stone, in reading order: intent, acceptance, provenance, proof, runs,
@@ -108,13 +108,14 @@ export function StoneDrawer({
                   <button
                     key={ancestor.stone.id}
                     type="button"
-                    className="stone-item retired"
+                    className={`stone-item is-${ancestor.stone.status}`}
                     onClick={() => {
                       onOpen(ancestor.stone.id);
                     }}
                   >
-                    <StatusDot status={ancestor.stone.status} />
+                    <StatusMark status={ancestor.stone.status} />
                     <span className="stone-title">{ancestor.stone.title}</span>
+                    <span className="stone-status">{ancestor.stone.status}</span>
                     <span className="id-mono">{shortId(ancestor.stone.id)}</span>
                   </button>
                 ))}
@@ -159,7 +160,8 @@ export function StoneDrawer({
               <div>
                 {runs.map((run) => (
                   <div className="run-row" key={run.id}>
-                    <StatusDot status={run.verdict === "green" ? "proven" : "broken"} />
+                    <StatusMark status={run.verdict === "green" ? "proven" : "broken"} />
+                    <span className="run-verdict">{run.verdict === "green" ? "pass" : "fail"}</span>
                     <span className="run-when">{absoluteTime(run.at)}</span>
                     {run.commit ? <span className="whisper">{run.commit}</span> : null}
                     <span>{run.derived ? "from lastGreen" : formatDuration(run.durationMs)}</span>

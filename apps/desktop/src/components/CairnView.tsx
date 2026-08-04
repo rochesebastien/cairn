@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import type { StoneRecord, StoneStatus } from "../lib/cairn.js";
 import { buildChains, countByStatus, surfacesOf } from "../lib/cairn.js";
 import { relativeTime, shortId } from "../lib/format.js";
-import { Empty, FilterChip, FilterGroup, StatusDot, SurfaceTag, ViewHeader } from "./bits.js";
+import { Empty, FilterChip, FilterGroup, StatusMark, SurfaceTag, ViewHeader } from "./bits.js";
 
 const STATUS_FILTERS: (StoneStatus | "all")[] = [
   "all",
@@ -57,7 +57,7 @@ export function CairnView({
                   }}
                   count={option === "all" ? stones.length : counts[option]}
                 >
-                  {option === "all" ? null : <StatusDot status={option} />}
+                  {option === "all" ? null : <StatusMark status={option} />}
                   {option}
                 </FilterChip>
               ))}
@@ -156,18 +156,19 @@ function StoneItem({
   onOpen: (id: string) => void;
 }): JSX.Element {
   const { stone } = record;
-  const retired = stone.status === "retired";
   return (
     <button
       type="button"
-      className={`stone-item ${selected ? "selected" : ""} ${retired ? "retired" : ""}`}
+      className={`stone-item is-${stone.status} ${selected ? "selected" : ""}`}
       onClick={() => {
         onOpen(stone.id);
       }}
     >
-      <StatusDot status={stone.status} pulse={pulse} />
+      <StatusMark status={stone.status} pulse={pulse} />
       <span className="stone-title">{stone.title}</span>
       <span className="stone-meta">
+        {/* the glyph never travels alone in a dense list */}
+        <span className="stone-status">{stone.status}</span>
         <SurfaceTag surface={stone.surface} />
         <span className="id-mono">{shortId(stone.id)}</span>
         <span style={{ minWidth: 62, textAlign: "right" }}>

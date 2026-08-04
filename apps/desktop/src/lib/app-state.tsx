@@ -229,7 +229,8 @@ export function useAppState(): AppStateValue {
 
 /**
  * The single moment of delight in the app: a stone that turns `proven` after a
- * local verify pulses once, amber → moss. Nothing else moves on status change.
+ * local verify gives its status mark one soft opacity pulse. Nothing else moves
+ * on status change.
  */
 export function useProvenPulse(stones: StoneRecord[] | undefined): Set<string> {
   const previous = useRef<Map<string, string>>(new Map());

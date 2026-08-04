@@ -4,6 +4,11 @@
  * Tokens come straight from apps/desktop/DESIGN.md. Never hardcode a colour,
  * a radius or a shadow in a component: add a token here instead.
  *
+ * Monochrome, structural, quiet. There is no brand hue: borders carry the
+ * structure, type carries the hierarchy, and the accent is simply the far end
+ * of the greyscale from the canvas. The old amber accent, the ambient glow and
+ * every frosted panel were removed on purpose — do not bring them back.
+ *
  * Dark is the default. `[data-theme='light']` swaps the token table only —
  * component rules below are written once and read from the variables.
  */
@@ -11,92 +16,83 @@
 /* ------------------------------------------------------------------ tokens */
 
 :root {
-  /* canvas */
-  --bg-base: #0c0b0a;
-  --bg-glow-primary: rgba(217, 122, 22, 0.14); /* brand amber, bottom-left */
-  --bg-glow-secondary: rgba(94, 114, 160, 0.05); /* slate blue, top-right */
+  /* canvas — flat, no gradient, no glow */
+  --bg-base: #09090b;
 
   /* surfaces */
-  --surface: rgba(24, 22, 20, 0.62);
-  --surface-strong: rgba(30, 28, 26, 0.88);
-  --surface-hover: rgba(255, 255, 255, 0.035);
-  --sidebar-bg: rgba(18, 17, 16, 0.66);
+  --surface: #0c0c0e;
+  --surface-strong: #121215;
+  --surface-hover: rgba(255, 255, 255, 0.04);
+  --surface-active: rgba(255, 255, 255, 0.07);
 
   /* borders */
-  --border: rgba(255, 255, 255, 0.07);
-  --border-strong: rgba(255, 255, 255, 0.12);
-  --border-focus: rgba(240, 157, 60, 0.5);
+  --border: #1f1f23;
+  --border-strong: #2e2e33;
+  --ring: rgba(255, 255, 255, 0.3);
 
   /* text */
-  --text: rgba(255, 255, 255, 0.94);
-  --text-dim: rgba(255, 255, 255, 0.62);
-  --text-faint: rgba(255, 255, 255, 0.38);
-  --text-whisper: rgba(255, 255, 255, 0.22);
+  --text: #fafafa;
+  --text-dim: #a1a1aa;
+  --text-faint: #71717a;
+  --text-whisper: #52525b;
 
-  /* accent — the only interaction hue */
-  --accent: #f09d3c;
-  --accent-soft: rgba(240, 157, 60, 0.16);
-  --accent-ink: #17120b; /* text on a filled accent button */
-
-  /* status — a closed set, dot/chip scale only */
-  --status-proven: #6fae7b;
-  --status-broken: #d4544a;
-  --status-escalated: var(--accent);
-  --status-draft: var(--text-dim);
-  --status-retired: var(--text-whisper);
+  /* accent — the interactive colour IS white */
+  --accent: #fafafa;
+  --accent-fg: #09090b;
+  --accent-hover: #e4e4e7;
+  --accent-soft: rgba(255, 255, 255, 0.08);
 
   /* shape */
-  --radius-card: 14px;
-  --radius-item: 10px;
+  --radius-card: 12px;
+  --radius: 8px;
   --radius-pill: 6px;
 
-  /* the one shadow recipe */
-  --shadow:
-    0 1px 0 rgba(255, 255, 255, 0.04) inset,
-    0 24px 60px -20px rgba(0, 0, 0, 0.55);
+  /* elevation — one recipe per theme, floating surfaces only */
+  --shadow: 0 16px 40px -24px rgba(0, 0, 0, 0.8);
 
   /* rhythm */
   --gutter: 24px;
   --ease-entrance: cubic-bezier(0.2, 0.8, 0.2, 1);
 
-  /* the proof viewer keeps one dark code theme in both app themes */
-  --code-bg: rgba(10, 9, 8, 0.72);
-  --code-text: rgba(255, 255, 255, 0.82);
-  --code-faint: rgba(255, 255, 255, 0.3);
-  --code-border: rgba(255, 255, 255, 0.08);
+  /* record surfaces: proofs, diffs, run logs */
+  --code-bg: #09090b;
+  --code-text: #d4d4d8;
+  --code-faint: #71717a;
+  --code-border: #1f1f23;
 
   color-scheme: dark;
 }
 
 [data-theme='light'] {
-  --bg-base: #faf7f2;
-  --bg-glow-primary: rgba(217, 122, 22, 0.1);
-  --bg-glow-secondary: rgba(94, 114, 160, 0.045);
+  --bg-base: #ffffff;
 
-  --surface: rgba(255, 255, 255, 0.72);
-  --surface-strong: rgba(255, 255, 255, 0.93);
-  --surface-hover: rgba(38, 28, 18, 0.04);
-  --sidebar-bg: rgba(255, 255, 255, 0.6);
+  --surface: #ffffff;
+  --surface-strong: #ffffff;
+  --surface-hover: rgba(9, 9, 11, 0.04);
+  --surface-active: rgba(9, 9, 11, 0.07);
 
-  --border: rgba(38, 28, 18, 0.1);
-  --border-strong: rgba(38, 28, 18, 0.16);
-  --border-focus: rgba(217, 122, 22, 0.45);
+  --border: #e4e4e7;
+  --border-strong: #d4d4d8;
+  --ring: rgba(9, 9, 11, 0.3);
 
-  --text: rgba(26, 21, 16, 0.94);
-  --text-dim: rgba(26, 21, 16, 0.62);
-  --text-faint: rgba(26, 21, 16, 0.42);
-  --text-whisper: rgba(26, 21, 16, 0.24);
+  --text: #09090b;
+  --text-dim: #52525b;
+  --text-faint: #71717a;
+  --text-whisper: #a1a1aa;
 
-  --accent: #d97a16; /* the brand, verbatim */
-  --accent-soft: rgba(217, 122, 22, 0.13);
-  --accent-ink: #fffaf3;
-
-  --status-proven: #3f7f52;
-  --status-broken: #b23a30;
+  --accent: #18181b;
+  --accent-fg: #fafafa;
+  --accent-hover: #27272a;
+  --accent-soft: rgba(9, 9, 11, 0.06);
 
   --shadow:
-    0 1px 0 rgba(255, 255, 255, 0.8) inset,
-    0 12px 30px -16px rgba(72, 48, 22, 0.26);
+    0 1px 2px rgba(9, 9, 11, 0.06),
+    0 8px 24px -12px rgba(9, 9, 11, 0.1);
+
+  --code-bg: #fafafa;
+  --code-text: #27272a;
+  --code-faint: #a1a1aa;
+  --code-border: #e4e4e7;
 
   color-scheme: light;
 }
@@ -127,17 +123,8 @@ body {
   overflow: hidden;
 }
 
-/* The canvas signature. Defined exactly once — never duplicate it. */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-  background:
-    radial-gradient(1150px 780px at 7% 99%, var(--bg-glow-primary), transparent 66%),
-    radial-gradient(900px 700px at 100% -12%, var(--bg-glow-secondary), transparent 62%);
-}
+/* The canvas is flat. The ambient gradient that used to live on body::before
+   was removed with the amber direction — no glow, no frost, nothing here. */
 
 ::selection {
   background: var(--accent-soft);
@@ -153,7 +140,7 @@ textarea {
 }
 
 :focus-visible {
-  outline: 2px solid var(--border-focus);
+  outline: 2px solid var(--ring);
   outline-offset: 2px;
   border-radius: 4px;
 }
@@ -219,42 +206,38 @@ pre {
   flex-direction: column;
   gap: 22px;
   padding: 20px 14px 14px;
-  background: var(--sidebar-bg);
-  backdrop-filter: blur(20px) saturate(1.2);
-  -webkit-backdrop-filter: blur(20px) saturate(1.2);
+  /* the sidebar is not a tinted panel: same canvas, one border */
+  background: var(--bg-base);
   border-right: 1px solid var(--border);
   overflow: hidden;
 }
 
 .brand {
   display: flex;
-  align-items: center;
-  gap: 10px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
   padding: 2px 8px 0;
 }
 
-.brand-mark {
-  width: 26px;
-  height: 26px;
+/* The full lockup — glyph + wordmark, one image. Never rebuild the wordmark
+   in CSS text beside the glyph. */
+.brand-logo {
+  display: block;
+  width: 104px;
+  height: auto;
   flex: none;
-  object-fit: contain;
-  /* The glyph is black; the dark canvas needs it white. */
+  /* the artwork is solid black: the dark canvas needs it white */
   filter: invert(1);
 }
 
-[data-theme="light"] .brand-mark {
+[data-theme='light'] .brand-logo {
   filter: none;
-}
-
-.brand-name {
-  font-family: 'Stack Sans Headline Variable', ui-sans-serif, system-ui, sans-serif;
-  font-size: 15px;
-  font-weight: 700;
-  letter-spacing: -0.02em;
 }
 
 .brand-sub {
   display: block;
+  padding-left: 1px;
   font-size: 11px;
   font-weight: 400;
   color: var(--text-faint);
@@ -284,7 +267,7 @@ pre {
   width: 100%;
   padding: 7px 9px;
   border: 0;
-  border-radius: var(--radius-item);
+  border-radius: var(--radius);
   background: transparent;
   color: var(--text-dim);
   font-size: 13.5px;
@@ -301,12 +284,12 @@ pre {
 }
 
 .nav-item.active {
-  background: var(--accent-soft);
+  background: var(--surface-active);
   color: var(--text);
 }
 
 .nav-item.active .nav-icon {
-  color: var(--accent);
+  color: var(--text);
 }
 
 .nav-icon {
@@ -335,8 +318,8 @@ pre {
 }
 
 .nav-item.active .count-badge {
-  background: transparent;
-  color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--text);
 }
 
 .repo-list {
@@ -354,7 +337,7 @@ pre {
   width: 100%;
   padding: 6px 9px;
   border: 0;
-  border-radius: var(--radius-item);
+  border-radius: var(--radius);
   background: transparent;
   color: var(--text-dim);
   font-size: 13px;
@@ -368,7 +351,7 @@ pre {
 }
 
 .repo-item.active {
-  background: var(--surface-hover);
+  background: var(--surface-active);
   color: var(--text);
 }
 
@@ -379,9 +362,10 @@ pre {
   white-space: nowrap;
 }
 
-.repo-dots {
+.repo-marks {
   display: flex;
-  gap: 3px;
+  align-items: center;
+  gap: 4px;
   flex: none;
 }
 
@@ -390,7 +374,7 @@ pre {
 }
 
 .repo-open:hover {
-  color: var(--accent);
+  color: var(--text);
 }
 
 .sidebar-foot {
@@ -410,23 +394,23 @@ pre {
   width: 100%;
   padding: 9px 12px;
   border: 1px solid transparent;
-  border-radius: var(--radius-item);
+  border-radius: var(--radius);
   background: var(--accent);
-  color: var(--accent-ink);
+  color: var(--accent-fg);
   font-size: 13.5px;
   font-weight: 500;
   cursor: pointer;
   transition:
-    filter 140ms ease,
+    background 140ms ease,
     opacity 140ms ease;
 }
 
 .verify-launcher:hover:not(:disabled) {
-  filter: brightness(1.06);
+  background: var(--accent-hover);
 }
 
 .verify-launcher:disabled {
-  opacity: 0.55;
+  opacity: 0.45;
   cursor: default;
 }
 
@@ -443,7 +427,7 @@ pre {
   gap: 7px;
   padding: 6px 9px;
   border: 0;
-  border-radius: var(--radius-item);
+  border-radius: var(--radius);
   background: transparent;
   color: var(--text-faint);
   font-size: 12.5px;
@@ -483,9 +467,7 @@ pre {
   border: 1px solid var(--border);
   border-radius: var(--radius-card);
   background: var(--surface);
-  backdrop-filter: blur(24px) saturate(1.3);
-  -webkit-backdrop-filter: blur(24px) saturate(1.3);
-  box-shadow: var(--shadow);
+  /* no shadow: the hairline is the whole treatment */
   overflow: hidden;
 }
 
@@ -558,7 +540,7 @@ pre {
   position: absolute;
   inset: 0 auto 0 0;
   width: 32%;
-  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  background: linear-gradient(90deg, transparent, var(--text), transparent);
   animation: hairline 1.4s linear infinite;
 }
 
@@ -579,7 +561,7 @@ pre {
   gap: 4px;
   padding: 3px;
   border: 1px solid var(--border);
-  border-radius: var(--radius-item);
+  border-radius: var(--radius);
 }
 
 .filter-chip {
@@ -603,7 +585,7 @@ pre {
 }
 
 .filter-chip.active {
-  background: var(--surface-hover);
+  background: var(--surface-active);
   color: var(--text);
 }
 
@@ -625,7 +607,7 @@ pre {
   gap: 7px;
   padding: 7px 13px;
   border: 1px solid var(--border);
-  border-radius: var(--radius-item);
+  border-radius: var(--radius);
   background: transparent;
   color: var(--text-dim);
   font-size: 13px;
@@ -643,21 +625,22 @@ pre {
 }
 
 .btn:disabled {
-  opacity: 0.5;
+  opacity: 0.45;
   cursor: default;
 }
 
+/* the one solid block on screen */
 .btn-accent {
   border-color: transparent;
   background: var(--accent);
-  color: var(--accent-ink);
+  color: var(--accent-fg);
   font-weight: 500;
 }
 
 .btn-accent:hover:not(:disabled) {
-  background: var(--accent);
-  color: var(--accent-ink);
-  filter: brightness(1.06);
+  background: var(--accent-hover);
+  color: var(--accent-fg);
+  border-color: transparent;
 }
 
 .btn-ghost {
@@ -671,51 +654,71 @@ pre {
 
 /* ------------------------------------------------------------ status bits */
 
-.status-dot {
-  width: 7px;
-  height: 7px;
+/*
+ * Status is carried by shape and weight, never by hue: a 12px monochrome
+ * glyph, paired with its text label wherever there is room for one.
+ */
+.status-mark-wrap {
+  display: inline-flex;
+  align-items: center;
   flex: none;
-  border-radius: 50%;
-  background: var(--dot, var(--text-faint));
 }
 
-.status-dot.hollow {
-  background: transparent;
-  border: 1.5px solid var(--dot, var(--text-faint));
+.status-mark {
+  width: 12px;
+  height: 12px;
+  flex: none;
+  display: block;
+  color: var(--text-faint);
 }
 
-.status-dot.struck {
-  position: relative;
-  background: transparent;
-  border: 1.5px solid var(--dot, var(--text-whisper));
+.status-mark.is-draft {
+  color: var(--text-faint);
+}
+.status-mark.is-proven {
+  color: var(--text);
+}
+.status-mark.is-broken {
+  color: var(--text);
+}
+.status-mark.is-escalated {
+  color: var(--text);
+}
+.status-mark.is-retired {
+  color: var(--text-whisper);
 }
 
-.status-dot.struck::after {
-  content: '';
-  position: absolute;
-  inset: 50% -3px auto;
-  height: 1px;
-  background: var(--dot, var(--text-whisper));
-  transform: rotate(-45deg);
-}
-
-/* the one moment of delight: draft/broken → proven after a local verify */
-.status-dot.pulse {
+/* the one moment of delight: a stone reaching proven after a local verify */
+.status-mark.pulse {
   animation: proven-pulse 1100ms var(--ease-entrance) 1;
 }
 
 @keyframes proven-pulse {
   0% {
-    background: var(--accent);
-    box-shadow: 0 0 0 0 var(--accent-soft);
+    opacity: 0.25;
   }
   45% {
-    box-shadow: 0 0 0 7px transparent;
+    opacity: 1;
   }
   100% {
-    background: var(--status-proven);
-    box-shadow: 0 0 0 0 transparent;
+    opacity: 1;
   }
+}
+
+/* the repo row summarises statuses in the same marks, one size down */
+.repo-marks .status-mark {
+  width: 11px;
+  height: 11px;
+}
+
+/* the summary row differentiates by weight, never by hue */
+.repo-item:not(.active) .repo-marks {
+  opacity: 0.7;
+}
+
+.status-label {
+  color: var(--text-dim);
+  font-size: 12px;
 }
 
 .status-chip {
@@ -742,7 +745,7 @@ pre {
   display: inline-block;
   min-width: 18px;
   padding: 1px 5px;
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border);
   border-radius: var(--radius-pill);
   color: var(--text-faint);
   font-family: 'Geist Mono Variable', ui-monospace, monospace;
@@ -774,7 +777,7 @@ pre {
   padding: 18px;
   border: 1px solid var(--border);
   border-radius: var(--radius-card);
-  background: var(--surface-hover);
+  background: transparent;
   transition:
     border-color 160ms ease,
     background 160ms ease;
@@ -782,8 +785,8 @@ pre {
 
 .review-card.selected {
   border-color: var(--border-strong);
-  background: var(--surface-strong);
-  box-shadow: inset 2px 0 0 var(--accent);
+  background: var(--surface-hover);
+  box-shadow: inset 2px 0 0 var(--border-strong);
 }
 
 .review-head {
@@ -912,8 +915,8 @@ pre {
   margin: 0 0 8px;
   padding: 9px 12px;
   border: 1px solid var(--border);
-  border-left: 2px solid var(--accent);
-  border-radius: var(--radius-item);
+  border-left: 2px solid var(--border-strong);
+  border-radius: var(--radius);
   color: var(--text-dim);
   font-size: 12.5px;
   max-width: 860px;
@@ -934,7 +937,7 @@ pre {
   width: 100%;
   padding: 11px 14px;
   border: 1px solid var(--border);
-  border-radius: var(--radius-item);
+  border-radius: var(--radius);
   background: transparent;
   color: inherit;
   text-align: left;
@@ -950,11 +953,17 @@ pre {
 }
 
 .stone-item.selected {
-  background: var(--surface-hover);
+  background: var(--surface-active);
   border-color: var(--border-strong);
 }
 
-.stone-item.retired .stone-title {
+/* the two queue states keep a left edge — structure, not colour */
+.stone-item.is-broken,
+.stone-item.is-escalated {
+  box-shadow: inset 2px 0 0 var(--border-strong);
+}
+
+.stone-item.is-retired .stone-title {
   color: var(--text-whisper);
 }
 
@@ -973,6 +982,16 @@ pre {
   flex: none;
   color: var(--text-faint);
   font-size: 12px;
+}
+
+.stone-status {
+  min-width: 66px;
+  color: var(--text-dim);
+}
+
+.stone-item.is-retired .stone-status,
+.stone-item.is-draft .stone-status {
+  color: var(--text-faint);
 }
 
 /* an amendment chain is ONE object: tighter spacing + a spine */
@@ -1008,7 +1027,7 @@ pre {
 
 .lineage-group {
   border: 1px solid var(--border);
-  border-radius: var(--radius-item);
+  border-radius: var(--radius);
   padding: 14px 12px 8px;
   background: var(--surface-hover);
 }
@@ -1018,9 +1037,9 @@ pre {
 .escalation-card {
   padding: 18px;
   border: 1px solid var(--border);
-  border-left: 2px solid var(--status-escalated);
+  border-left: 2px solid var(--border-strong);
   border-radius: var(--radius-card);
-  background: var(--surface-hover);
+  background: transparent;
   max-width: 900px;
 }
 
@@ -1058,7 +1077,7 @@ pre {
 .diff-block {
   margin-top: 14px;
   border: 1px solid var(--code-border);
-  border-radius: var(--radius-item);
+  border-radius: var(--radius);
   background: var(--code-bg);
   overflow: auto;
   max-height: 260px;
@@ -1072,11 +1091,15 @@ pre {
   color: var(--code-text);
 }
 
+/* a diff without colour: the sign column plus a contrast step */
 .diff-add {
-  color: var(--status-proven);
+  color: var(--text);
+  font-weight: 500;
 }
 .diff-del {
-  color: var(--status-broken);
+  color: var(--code-faint);
+  text-decoration: line-through;
+  text-decoration-thickness: 1px;
 }
 .diff-meta {
   color: var(--code-faint);
@@ -1088,7 +1111,7 @@ pre {
   height: 100%;
   min-height: 0;
   border: 1px solid var(--code-border);
-  border-radius: var(--radius-item);
+  border-radius: var(--radius);
   background: var(--code-bg);
   overflow: auto;
   padding: 12px 14px;
@@ -1106,11 +1129,18 @@ pre {
 .run-line-dim {
   color: var(--code-faint);
 }
-.run-line-green {
-  color: var(--status-proven);
+
+/* pass / fail read by weight and a rule, not by green and red */
+.run-line-pass {
+  color: var(--text);
 }
-.run-line-red {
-  color: var(--status-broken);
+
+.run-line-fail {
+  color: var(--text);
+  font-weight: 500;
+  box-shadow: inset 2px 0 0 var(--border-strong);
+  padding-left: 8px;
+  margin-left: -8px;
 }
 
 .run-row {
@@ -1133,13 +1163,18 @@ pre {
   color: var(--text-faint);
 }
 
+.run-verdict {
+  min-width: 48px;
+  color: var(--text-dim);
+}
+
 .toggle {
   display: inline-flex;
   align-items: center;
   gap: 7px;
   padding: 4px 9px;
   border: 1px solid var(--border);
-  border-radius: var(--radius-item);
+  border-radius: var(--radius);
   background: transparent;
   color: var(--text-faint);
   font-size: 12px;
@@ -1163,7 +1198,7 @@ pre {
 }
 
 .toggle.on .knob {
-  background: var(--accent);
+  background: var(--text);
 }
 
 /* ----------------------------------------------------------- detail drawer */
@@ -1172,12 +1207,14 @@ pre {
   position: fixed;
   inset: 0;
   z-index: 40;
-  background: rgba(0, 0, 0, 0.42);
-  backdrop-filter: blur(2px);
-  -webkit-backdrop-filter: blur(2px);
+  background: rgba(0, 0, 0, 0.5);
   border: 0;
   padding: 0;
   animation: fade-in 200ms ease both;
+}
+
+[data-theme='light'] .detail-backdrop {
+  background: rgba(9, 9, 11, 0.28);
 }
 
 @keyframes fade-in {
@@ -1199,9 +1236,8 @@ pre {
   display: flex;
   flex-direction: column;
   background: var(--surface-strong);
-  backdrop-filter: blur(28px) saturate(1.3);
-  -webkit-backdrop-filter: blur(28px) saturate(1.3);
-  border-left: 1px solid var(--border-strong);
+  border-left: 1px solid var(--border);
+  /* the only genuinely floating surface, so the only shadow */
   box-shadow: var(--shadow);
   animation: drawer-in 200ms var(--ease-entrance) both;
 }
@@ -1273,7 +1309,7 @@ pre {
 
 .proof-view {
   border: 1px solid var(--code-border);
-  border-radius: var(--radius-item);
+  border-radius: var(--radius);
   background: var(--code-bg);
   overflow: auto;
   max-height: 320px;
@@ -1310,8 +1346,8 @@ pre {
 
 .failure-block {
   border: 1px solid var(--border);
-  border-left: 2px solid var(--status-broken);
-  border-radius: var(--radius-item);
+  border-left: 2px solid var(--border-strong);
+  border-radius: var(--radius);
   padding: 12px 14px;
 }
 
@@ -1319,7 +1355,7 @@ pre {
   margin-top: 10px;
   width: 100%;
   border: 1px solid var(--border);
-  border-radius: var(--radius-item);
+  border-radius: var(--radius);
   display: block;
   background: var(--code-bg);
 }

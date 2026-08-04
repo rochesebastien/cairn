@@ -78,9 +78,9 @@ export function RunsView({ snapshot }: { snapshot: CairnSnapshot | undefined }):
                   key={line.id}
                   className={
                     line.kind === "green"
-                      ? "run-line-green"
+                      ? "run-line-pass"
                       : line.kind === "red"
-                        ? "run-line-red"
+                        ? "run-line-fail"
                         : line.kind === "plain"
                           ? ""
                           : "run-line-dim"

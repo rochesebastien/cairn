@@ -1,9 +1,23 @@
 /** The small shared pieces: status dot, chips, kbd, empty states, view chrome. */
 
-import type { CSSProperties, ReactNode } from "react";
+import type { ReactNode } from "react";
 import type { StoneStatus } from "../lib/cairn.js";
+import { BrokenMark, DraftMark, EscalatedMark, ProvenMark, RetiredMark } from "./icons.js";
 
-export function StatusDot({
+const MARKS: Record<StoneStatus, (props: { className?: string | undefined }) => JSX.Element> = {
+  draft: DraftMark,
+  proven: ProvenMark,
+  broken: BrokenMark,
+  escalated: EscalatedMark,
+  retired: RetiredMark,
+};
+
+/**
+ * A status, carried by shape and weight instead of a hue. Pair it with
+ * `StatusLabel` (or a `StatusChip`) wherever the layout has room for words —
+ * the glyph alone is never the whole message.
+ */
+export function StatusMark({
   status,
   pulse = false,
   className = "",
@@ -12,22 +26,22 @@ export function StatusDot({
   pulse?: boolean;
   className?: string;
 }): JSX.Element {
-  const style = { "--dot": `var(--status-${status})` } as CSSProperties;
-  const shape = status === "retired" ? "struck" : status === "draft" ? "hollow" : "";
+  const Glyph = MARKS[status];
   return (
-    <span
-      className={`status-dot ${shape} ${pulse ? "pulse" : ""} ${className}`.trim()}
-      style={style}
-      title={status}
-      aria-label={status}
-    />
+    <span className="status-mark-wrap" role="img" aria-label={status} title={status}>
+      <Glyph className={`status-mark is-${status} ${pulse ? "pulse" : ""} ${className}`.trim()} />
+    </span>
   );
+}
+
+export function StatusLabel({ status }: { status: StoneStatus }): JSX.Element {
+  return <span className="status-label">{status}</span>;
 }
 
 export function StatusChip({ status }: { status: StoneStatus }): JSX.Element {
   return (
     <span className="status-chip">
-      <StatusDot status={status} />
+      <StatusMark status={status} />
       {status}
     </span>
   );

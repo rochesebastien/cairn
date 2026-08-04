@@ -1,9 +1,12 @@
 /*
  * Cairn — showcase site.
  *
- * The token table is lifted verbatim from apps/desktop/src/app.css so the page
+ * The token table is lifted verbatim from apps/desktop/DESIGN.md so the page
  * and the app are the same object seen from two angles. Never hardcode a
  * colour, a radius or a shadow: add a token here instead.
+ *
+ * Monochrome, structural, quiet. There is no brand hue: the canvas is flat,
+ * hairline borders carry the structure, and type carries the hierarchy.
  *
  * Dark is the default. `[data-theme='light']` swaps the token table only.
  */
@@ -68,99 +71,82 @@
 /* ----------------------------------------------------------------- tokens */
 
 :root {
-  /* canvas */
-  --bg-base: #0c0b0a;
-  --bg-glow-primary: rgba(217, 122, 22, 0.14); /* brand amber, bottom-left */
-  --bg-glow-secondary: rgba(94, 114, 160, 0.05); /* slate blue, top-right */
+  /* canvas — flat, neutral zinc, no hue and no temperature */
+  --bg-base: #09090b;
 
   /* surfaces */
-  --surface: rgba(24, 22, 20, 0.62);
-  --surface-strong: rgba(30, 28, 26, 0.88);
-  --surface-hover: rgba(255, 255, 255, 0.035);
-  --bar-bg: rgba(18, 17, 16, 0.66);
+  --surface: #0c0c0e;
+  --surface-strong: #121215;
+  --surface-hover: rgba(255, 255, 255, 0.04);
+  --surface-active: rgba(255, 255, 255, 0.07);
 
-  /* borders */
-  --border: rgba(255, 255, 255, 0.07);
-  --border-strong: rgba(255, 255, 255, 0.12);
-  --border-focus: rgba(240, 157, 60, 0.5);
+  /* borders — these carry the structure */
+  --border: #1f1f23;
+  --border-strong: #2e2e33;
+  --ring: rgba(255, 255, 255, 0.3);
 
   /* text */
-  --text: rgba(255, 255, 255, 0.94);
-  --text-dim: rgba(255, 255, 255, 0.62);
-  --text-faint: rgba(255, 255, 255, 0.38);
-  --text-whisper: rgba(255, 255, 255, 0.22);
+  --text: #fafafa;
+  --text-dim: #a1a1aa;
+  --text-faint: #71717a;
+  --text-whisper: #52525b;
 
-  /* accent — the only interaction hue */
-  --accent: #f09d3c;
-  --accent-soft: rgba(240, 157, 60, 0.16);
-  --accent-ink: #17120b;
-
-  /* status — a closed set, dot scale only */
-  --status-proven: #6fae7b;
-  --status-broken: #d4544a;
-  --status-escalated: var(--accent);
-  --status-draft: var(--text-dim);
-  --status-retired: var(--text-whisper);
+  /* the interactive colour IS white */
+  --accent: #fafafa;
+  --accent-fg: #09090b;
+  --accent-hover: #e4e4e7;
+  --accent-soft: rgba(255, 255, 255, 0.08);
 
   /* shape */
-  --radius-card: 14px;
-  --radius-item: 10px;
+  --radius-card: 12px;
+  --radius: 8px;
   --radius-pill: 6px;
 
-  /* the one shadow recipe */
-  --shadow:
-    0 1px 0 rgba(255, 255, 255, 0.04) inset,
-    0 24px 60px -20px rgba(0, 0, 0, 0.55);
+  /* the one shadow recipe — floating surfaces only, never a card in a list */
+  --shadow: 0 16px 40px -24px rgba(0, 0, 0, 0.8);
 
   /* rhythm */
   --gutter: 24px;
   --ease-entrance: cubic-bezier(0.2, 0.8, 0.2, 1);
 
-  /* code / registry blocks keep one dark theme in both site themes */
-  --code-bg: rgba(10, 9, 8, 0.72);
-  --code-text: rgba(255, 255, 255, 0.82);
-  --code-faint: rgba(255, 255, 255, 0.3);
-  --code-border: rgba(255, 255, 255, 0.08);
+  /* site extension: the quoted registry block, one step off the canvas */
+  --code-bg: #0c0c0e;
+  --code-text: #d4d4d8;
+  --code-faint: #71717a;
 
   color-scheme: dark;
 }
 
 [data-theme='light'] {
-  --bg-base: #faf7f2;
-  --bg-glow-primary: rgba(217, 122, 22, 0.1);
-  --bg-glow-secondary: rgba(94, 114, 160, 0.045);
+  --bg-base: #ffffff;
 
-  --surface: rgba(255, 255, 255, 0.72);
-  --surface-strong: rgba(255, 255, 255, 0.93);
-  --surface-hover: rgba(38, 28, 18, 0.04);
-  --bar-bg: rgba(255, 255, 255, 0.62);
+  --surface: #ffffff;
+  --surface-strong: #ffffff;
+  --surface-hover: rgba(9, 9, 11, 0.04);
+  --surface-active: rgba(9, 9, 11, 0.07);
 
-  --border: rgba(38, 28, 18, 0.1);
-  --border-strong: rgba(38, 28, 18, 0.16);
-  --border-focus: rgba(217, 122, 22, 0.45);
+  --border: #e4e4e7;
+  --border-strong: #d4d4d8;
+  --ring: rgba(9, 9, 11, 0.3);
 
-  --text: rgba(26, 21, 16, 0.94);
-  --text-dim: rgba(26, 21, 16, 0.62);
-  --text-faint: rgba(26, 21, 16, 0.42);
-  --text-whisper: rgba(26, 21, 16, 0.24);
+  --text: #09090b;
+  --text-dim: #52525b;
+  --text-faint: #71717a;
+  --text-whisper: #a1a1aa;
 
-  --accent: #d97a16; /* the brand, verbatim */
-  --accent-soft: rgba(217, 122, 22, 0.13);
-  --accent-ink: #fffaf3;
-
-  --status-proven: #3f7f52;
-  --status-broken: #b23a30;
+  /* the interactive colour IS near-black */
+  --accent: #18181b;
+  --accent-fg: #fafafa;
+  --accent-hover: #27272a;
+  --accent-soft: rgba(9, 9, 11, 0.06);
 
   --shadow:
-    0 1px 0 rgba(255, 255, 255, 0.8) inset,
-    0 12px 30px -16px rgba(72, 48, 22, 0.26);
+    0 1px 2px rgba(9, 9, 11, 0.06),
+    0 8px 24px -12px rgba(9, 9, 11, 0.1);
 
-  /*
-   * The app ships one dark code theme in both themes. On paper the app's
-   * 0.72 alpha composites to a muddy grey, so the alpha is raised here to keep
-   * the *stated* rule true: the registry block stays dark, in both themes.
-   */
-  --code-bg: rgba(14, 12, 11, 0.94);
+  --code-bg: #fafafa;
+  --code-text: #3f3f46;
+  --code-faint: #a1a1aa;
 
   color-scheme: light;
 }
@@ -188,30 +174,21 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-/* The canvas signature. Defined exactly once — never duplicate it. */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-  background:
-    radial-gradient(1150px 780px at 7% 99%, var(--bg-glow-primary), transparent 66%),
-    radial-gradient(900px 700px at 100% -12%, var(--bg-glow-secondary), transparent 62%);
-}
+/* The canvas is flat. Nothing is painted behind the content. */
 
 ::selection {
-  background: var(--accent-soft);
+  background: var(--accent);
+  color: var(--accent-fg);
 }
 
 :focus-visible {
-  outline: 2px solid var(--border-focus);
+  outline: 2px solid var(--ring);
   outline-offset: 2px;
   border-radius: 4px;
 }
 
 a {
-  color: var(--accent);
+  color: inherit;
   text-decoration: none;
 }
 
@@ -294,9 +271,10 @@ svg {
   left: -9999px;
   top: 0;
   padding: 10px 16px;
+  border: 1px solid var(--border);
   background: var(--surface-strong);
   color: var(--text);
-  border-radius: var(--radius-item);
+  border-radius: var(--radius);
 }
 
 .skip-link:focus {
@@ -312,8 +290,10 @@ svg {
   scroll-margin-top: 84px;
 }
 
+/* a hairline is the whole separation between two sections */
 .section {
   padding: 96px 0;
+  border-top: 1px solid var(--border);
 }
 
 .section-head {
@@ -334,17 +314,18 @@ svg {
 .eyebrow {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   color: var(--text-faint);
   font-size: 13px;
 }
 
-.eyebrow .dot {
-  width: 7px;
-  height: 7px;
+/* a 14px rule, not a coloured pip — nothing here is decorative */
+.eyebrow::before {
+  content: '';
+  width: 14px;
+  height: 1px;
   flex: none;
-  border-radius: 50%;
-  background: var(--accent);
+  background: var(--border-strong);
 }
 
 /* -------------------------------------------------------------------- nav */
@@ -360,9 +341,7 @@ svg {
 }
 
 .nav.scrolled {
-  background: var(--bar-bg);
-  backdrop-filter: blur(20px) saturate(1.2);
-  -webkit-backdrop-filter: blur(20px) saturate(1.2);
+  background: var(--bg-base);
   border-bottom-color: var(--border);
 }
 
@@ -373,31 +352,22 @@ svg {
   height: 62px;
 }
 
+/* Brand — the complete lockup, never the glyph beside CSS text. */
 .brand {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 10px;
-  color: var(--text);
 }
 
-.brand-mark {
-  width: 26px;
-  height: 26px;
-  flex: none;
-  object-fit: contain;
-  /* The glyph is black; the dark canvas needs it white. */
+.brand-logo {
+  display: block;
+  width: 110px;
+  height: auto;
+  /* The artwork is solid black; the dark canvas needs it white. */
   filter: invert(1);
 }
 
-[data-theme='light'] .brand-mark {
+[data-theme='light'] .brand-logo {
   filter: none;
-}
-
-.brand-name {
-  font-family: 'Stack Sans Headline Variable', ui-sans-serif, system-ui, sans-serif;
-  font-weight: 700;
-  font-size: 18px;
-  letter-spacing: -0.02em;
 }
 
 .nav-links {
@@ -436,7 +406,7 @@ svg {
   height: 32px;
   padding: 0;
   border: 1px solid var(--border);
-  border-radius: var(--radius-item);
+  border-radius: var(--radius);
   background: transparent;
   color: var(--text-dim);
   cursor: pointer;
@@ -471,27 +441,26 @@ svg {
 
 /* ----------------------------------------------------------------- button */
 
+/* the outline/ghost button is the default; the accent block is the exception */
 .btn {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   padding: 10px 17px;
   border: 1px solid var(--border);
-  border-radius: var(--radius-item);
+  border-radius: var(--radius);
   background: transparent;
-  color: var(--text-dim);
+  color: var(--text);
   font-size: 15px;
   cursor: pointer;
   transition:
     background 140ms ease,
     color 140ms ease,
-    border-color 140ms ease,
-    filter 140ms ease;
+    border-color 140ms ease;
 }
 
 .btn:hover {
   background: var(--surface-hover);
-  color: var(--text);
   border-color: var(--border-strong);
 }
 
@@ -501,17 +470,17 @@ svg {
   flex: none;
 }
 
+/* a solid block of the accent, at the opposite end of the greyscale */
 .btn-accent {
-  border-color: transparent;
+  border-color: var(--accent);
   background: var(--accent);
-  color: var(--accent-ink);
-  font-weight: 500;
+  color: var(--accent-fg);
 }
 
 .btn-accent:hover {
-  background: var(--accent);
-  color: var(--accent-ink);
-  filter: brightness(1.06);
+  border-color: var(--accent-hover);
+  background: var(--accent-hover);
+  color: var(--accent-fg);
 }
 
 .btn-small {
@@ -575,7 +544,7 @@ svg {
   width: 13px;
   height: 13px;
   flex: none;
-  color: var(--accent);
+  color: var(--text-faint);
 }
 
 /* the registry, quoted verbatim */
@@ -583,8 +552,8 @@ svg {
   max-width: 620px;
   margin: 40px 0 0;
   padding: 16px 18px;
-  border: 1px solid var(--code-border);
-  border-radius: var(--radius-item);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
   background: var(--code-bg);
   color: var(--code-text);
   font-size: 13px;
@@ -604,16 +573,13 @@ svg {
   border: 1px solid var(--border);
   border-radius: var(--radius-card);
   background: var(--surface);
-  backdrop-filter: blur(20px) saturate(1.2);
-  -webkit-backdrop-filter: blur(20px) saturate(1.2);
-  box-shadow: var(--shadow);
 }
 
 .shot img {
   display: block;
   width: 100%;
   height: auto;
-  border-radius: var(--radius-item);
+  border-radius: var(--radius);
 }
 
 .shot-caption {
@@ -646,7 +612,7 @@ svg {
 .step-index svg {
   width: 16px;
   height: 16px;
-  color: var(--accent);
+  color: var(--text-faint);
 }
 
 .step h3 {
@@ -678,15 +644,13 @@ svg {
   gap: 14px;
 }
 
+/* a card in a list gets a hairline and nothing else — no shadow, ever */
 .card {
   grid-column: span 2;
   padding: 18px;
   border: 1px solid var(--border);
   border-radius: var(--radius-card);
   background: var(--surface);
-  backdrop-filter: blur(20px) saturate(1.2);
-  -webkit-backdrop-filter: blur(20px) saturate(1.2);
-  box-shadow: var(--shadow);
   transition: border-color 160ms ease;
 }
 
@@ -723,48 +687,46 @@ svg {
   color: var(--text);
 }
 
-/* the lifecycle: status hue lives here and nowhere else */
+/* ------------------------------------------------------- status, no colour */
+
+/*
+ * Status is carried by shape and weight: a 12px monochrome mark, always beside
+ * its text label. Never a coloured pip, and never shape alone.
+ */
+.status-mark {
+  width: 12px;
+  height: 12px;
+  flex: none;
+  color: var(--text);
+}
+
+.status-mark.is-draft {
+  color: var(--text-faint);
+}
+
+.status-mark.is-retired {
+  color: var(--text-whisper);
+}
+
+/* the lifecycle */
 .lifecycle {
   margin-top: 14px;
   display: grid;
-  gap: 4px;
+  gap: 2px;
 }
 
 .life-row {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 10px;
-  padding: 5px 0;
+  padding: 5px 0 5px 11px;
+  border-left: 2px solid transparent;
   font-size: 14px;
 }
 
-.status-dot {
-  width: 7px;
-  height: 7px;
-  flex: none;
-  border-radius: 50%;
-  background: var(--dot, var(--text-faint));
-  transform: translateY(-1px);
-}
-
-.status-dot.hollow {
-  background: transparent;
-  border: 1.5px solid var(--dot, var(--text-faint));
-}
-
-.status-dot.struck {
-  position: relative;
-  background: transparent;
-  border: 1.5px solid var(--dot, var(--text-whisper));
-}
-
-.status-dot.struck::after {
-  content: '';
-  position: absolute;
-  inset: 50% -3px auto;
-  height: 1px;
-  background: var(--dot, var(--text-whisper));
-  transform: rotate(-45deg);
+/* broken and escalated keep a left edge — they are a queue, not a colour */
+.life-row.edged {
+  border-left-color: var(--border-strong);
 }
 
 .life-name {
@@ -792,22 +754,20 @@ svg {
   gap: 9px;
   padding: 9px 11px;
   border: 1px solid var(--border);
-  border-radius: var(--radius-item);
+  border-left: 2px solid var(--border);
+  border-radius: var(--radius);
   color: var(--text-dim);
+}
+
+.lint-row.no {
+  border-left-color: var(--border-strong);
 }
 
 .lint-row .mark {
   flex: none;
+  color: var(--text);
   font-size: 12px;
   line-height: 1.5;
-}
-
-.lint-row.no .mark {
-  color: var(--status-broken);
-}
-
-.lint-row.yes .mark {
-  color: var(--status-proven);
 }
 
 /* an amendment chain reads as one object */
@@ -832,7 +792,7 @@ svg {
 .chain-rail {
   width: 1px;
   height: 12px;
-  margin-left: 3px;
+  margin-left: 5px;
   background: var(--border-strong);
 }
 
@@ -859,8 +819,8 @@ svg {
   margin-top: 32px;
   padding: 16px 18px;
   border: 1px solid var(--border);
-  border-left: 2px solid var(--accent-soft);
-  border-radius: var(--radius-item);
+  border-left: 2px solid var(--border-strong);
+  border-radius: var(--radius);
   color: var(--text-dim);
   font-size: 14.5px;
   max-width: 78ch;
@@ -887,9 +847,6 @@ svg {
   border: 1px solid var(--border);
   border-radius: var(--radius-card);
   background: var(--surface);
-  backdrop-filter: blur(20px) saturate(1.2);
-  -webkit-backdrop-filter: blur(20px) saturate(1.2);
-  box-shadow: var(--shadow);
   color: var(--text);
   transition:
     border-color 160ms ease,
@@ -898,7 +855,7 @@ svg {
 
 .dl:hover {
   border-color: var(--border-strong);
-  background: var(--surface-strong);
+  background: var(--surface-hover);
 }
 
 .dl-os {
@@ -926,7 +883,7 @@ svg {
 
 .dl-go {
   margin-top: 8px;
-  color: var(--accent);
+  color: var(--text);
   font-size: 14px;
 }
 
@@ -962,10 +919,10 @@ svg {
 }
 
 .footer-logo {
-  height: 26px;
-  width: auto;
+  display: block;
+  width: 96px;
+  height: auto;
   filter: invert(1);
-  opacity: 0.9;
 }
 
 [data-theme='light'] .footer-logo {
@@ -1032,6 +989,10 @@ svg {
     gap: 10px 16px;
   }
 
+  .brand-logo {
+    width: 94px;
+  }
+
   .nav-links {
     order: 3;
     width: 100%;
@@ -1073,6 +1034,12 @@ svg {
   .shot {
     margin-top: 44px;
     padding: 5px;
+  }
+
+  .life-row {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 4px 10px;
   }
 
   .life-name {

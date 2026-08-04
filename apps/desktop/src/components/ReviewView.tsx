@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { StoneRecord } from "../lib/cairn.js";
 import { useAppState, type Decision } from "../lib/app-state.js";
 import { relativeTime, shortId } from "../lib/format.js";
-import { Empty, Kbd, StatusDot, SurfaceTag, ViewHeader } from "./bits.js";
+import { Empty, Kbd, StatusLabel, StatusMark, SurfaceTag, ViewHeader } from "./bits.js";
 
 const DECISION_LABEL: Record<Decision, string> = {
   approved: "approved",
@@ -170,7 +170,9 @@ function ReviewCard({
       aria-current={selected ? "true" : undefined}
     >
       <div className="review-head">
-        <StatusDot status={stone.status} />
+        <StatusMark status={stone.status} />
+        <StatusLabel status={stone.status} />
+        <span className="dot-sep">·</span>
         <span className="id-mono">{shortId(stone.id)}</span>
         <SurfaceTag surface={stone.surface} />
         <span className="dot-sep">·</span>
@@ -203,7 +205,7 @@ function ReviewCard({
         {decision ? (
           <>
             <span className="decision">
-              <StatusDot status={decision === "approved" ? "proven" : "draft"} />
+              <StatusMark status={decision === "approved" ? "proven" : "draft"} />
               {DECISION_LABEL[decision]} — in this session
             </span>
             <span className="spacer" />

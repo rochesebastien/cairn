@@ -2,10 +2,10 @@ import type { StoneRecord, StoneStatus } from "../lib/cairn.js";
 import { countByStatus, repoName } from "../lib/cairn.js";
 import { useAppState } from "../lib/app-state.js";
 import type { Theme } from "../lib/theme.js";
-import { StatusDot } from "./bits.js";
+import { StatusMark } from "./bits.js";
 import {
   CairnIcon,
-  CairnMark,
+  CairnLogo,
   EscalationIcon,
   MoonIcon,
   PlayIcon,
@@ -52,11 +52,8 @@ export function Sidebar({
   return (
     <aside className="sidebar">
       <div className="brand">
-        <CairnMark className="brand-mark" />
-        <div>
-          <div className="brand-name">Cairn</div>
-          <span className="brand-sub">feature registry</span>
-        </div>
+        <CairnLogo className="brand-logo" />
+        <span className="brand-sub">feature registry</span>
       </div>
 
       <nav className="sidebar-section" aria-label="Views">
@@ -95,9 +92,9 @@ export function Sidebar({
               >
                 <span className="repo-name">{repoName(root)}</span>
                 {isActive ? (
-                  <span className="repo-dots">
+                  <span className="repo-marks">
                     {SUMMARY_STATUSES.filter((status) => counts[status] > 0).map((status) => (
-                      <StatusDot key={status} status={status} />
+                      <StatusMark key={status} status={status} />
                     ))}
                   </span>
                 ) : null}
