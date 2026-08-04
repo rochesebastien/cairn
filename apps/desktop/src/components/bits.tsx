@@ -1,4 +1,4 @@
-/** The small shared pieces: status dot, chips, kbd, empty states, view chrome. */
+/** The small shared pieces: status marks, chips, kbd, empty states, view chrome. */
 
 import type { ReactNode } from "react";
 import type { StoneStatus } from "../lib/cairn.js";

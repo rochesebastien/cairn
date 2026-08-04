@@ -42,6 +42,13 @@
   --accent-hover: #e4e4e7;
   --accent-soft: rgba(255, 255, 255, 0.08);
 
+  /* status — the ONLY hues in the system, verbatim in both themes.
+     Glyph, chip glyph and row edge scale only. Never a fill, never body text.
+     draft and retired stay on the greyscale: no verdict / left the suite. */
+  --status-proven: #438440;
+  --status-broken: #e9484c;
+  --status-escalated: #e99a3f;
+
   /* shape */
   --radius-card: 12px;
   --radius: 8px;
@@ -237,7 +244,8 @@ pre {
 
 .brand-sub {
   display: block;
-  padding-left: 1px;
+  /* optically aligned with the ink of the glyph, not the image box */
+  padding-left: 5px;
   font-size: 11px;
   font-weight: 400;
   color: var(--text-faint);
@@ -676,13 +684,13 @@ pre {
   color: var(--text-faint);
 }
 .status-mark.is-proven {
-  color: var(--text);
+  color: var(--status-proven);
 }
 .status-mark.is-broken {
-  color: var(--text);
+  color: var(--status-broken);
 }
 .status-mark.is-escalated {
-  color: var(--text);
+  color: var(--status-escalated);
 }
 .status-mark.is-retired {
   color: var(--text-whisper);
@@ -957,10 +965,14 @@ pre {
   border-color: var(--border-strong);
 }
 
-/* the two queue states keep a left edge — structure, not colour */
-.stone-item.is-broken,
+/* the two queue states keep a left edge — the one place a status hue leaves
+   the glyph, and it stays a 2px rule, never a fill */
+.stone-item.is-broken {
+  box-shadow: inset 2px 0 0 var(--status-broken);
+}
+
 .stone-item.is-escalated {
-  box-shadow: inset 2px 0 0 var(--border-strong);
+  box-shadow: inset 2px 0 0 var(--status-escalated);
 }
 
 .stone-item.is-retired .stone-title {
@@ -984,9 +996,19 @@ pre {
   font-size: 12px;
 }
 
+/* the meta strip is a column grid, not a ragged right edge */
 .stone-status {
-  min-width: 66px;
+  min-width: 64px;
   color: var(--text-dim);
+}
+
+.stone-meta .surface-tag {
+  min-width: 86px;
+  text-align: center;
+}
+
+.stone-meta .id-mono {
+  min-width: 92px;
 }
 
 .stone-item.is-retired .stone-status,
@@ -1037,7 +1059,8 @@ pre {
 .escalation-card {
   padding: 18px;
   border: 1px solid var(--border);
-  border-left: 2px solid var(--border-strong);
+  /* an escalation is a queue waiting on a human: the status edge says so */
+  border-left: 2px solid var(--status-escalated);
   border-radius: var(--radius-card);
   background: transparent;
   max-width: 900px;
@@ -1091,15 +1114,21 @@ pre {
   color: var(--code-text);
 }
 
-/* a diff without colour: the sign column plus a contrast step */
+/* a diff reads as a verdict, so it borrows the status hues — on the record
+   surface only (mono, inside a code block), never on UI chrome */
+.diff-add,
+.diff-del {
+  display: block;
+  margin: 0 -14px;
+  padding: 0 14px;
+}
 .diff-add {
-  color: var(--text);
-  font-weight: 500;
+  color: var(--status-proven);
+  background: var(--surface-hover);
 }
 .diff-del {
-  color: var(--code-faint);
-  text-decoration: line-through;
-  text-decoration-thickness: 1px;
+  color: var(--status-broken);
+  background: var(--surface-hover);
 }
 .diff-meta {
   color: var(--code-faint);
@@ -1130,15 +1159,16 @@ pre {
   color: var(--code-faint);
 }
 
-/* pass / fail read by weight and a rule, not by green and red */
+/* pass / fail: the verdict hues, plus the weight and rule that already made
+   a failure findable without them */
 .run-line-pass {
-  color: var(--text);
+  color: var(--status-proven);
 }
 
 .run-line-fail {
-  color: var(--text);
+  color: var(--status-broken);
   font-weight: 500;
-  box-shadow: inset 2px 0 0 var(--border-strong);
+  box-shadow: inset 2px 0 0 var(--status-broken);
   padding-left: 8px;
   margin-left: -8px;
 }
@@ -1346,7 +1376,7 @@ pre {
 
 .failure-block {
   border: 1px solid var(--border);
-  border-left: 2px solid var(--border-strong);
+  border-left: 2px solid var(--status-broken);
   border-radius: var(--radius);
   padding: 12px 14px;
 }

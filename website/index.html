@@ -127,8 +127,12 @@
 ├── stones/01KZ4XGH….md       <span class="c">the promise, in the user's language</span>
 └── proofs/01KZ4XGH….spec.ts  <span class="c">the evidence, replayed by CI forever</span></pre>
 
+          <!-- The app is shown in the theme the visitor is reading in. -->
           <div class="shot">
-            <img src="assets/screen-review.png" width="1440" height="900" alt="The Cairn desktop app, Review view: draft stones with their intent and acceptance criteria, waiting for approval." />
+            <img class="shot-dark" src="assets/screen-review.png" width="2880" height="1800"
+              alt="The Cairn desktop app, Review view: draft stones with their intent and acceptance criteria, waiting for approval." />
+            <img class="shot-light" src="assets/screen-review-light.png" width="2880" height="1800" alt=""
+              aria-hidden="true" />
           </div>
           <p class="shot-caption">
             The review app. Drafts arrive with the intent, the acceptance criteria and the verbatim
@@ -310,10 +314,18 @@
               </p>
               <div class="lint">
                 <div class="lint-row no">
+                  <svg class="status-mark" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+                    <path d="M3.2 3.2 8.8 8.8M8.8 3.2 3.2 8.8" stroke="currentColor" stroke-width="1.3"
+                      stroke-linecap="round" />
+                  </svg>
                   <span class="mark mono">refused</span>
                   <span class="mono">clearCart() empties the cart</span>
                 </div>
                 <div class="lint-row yes">
+                  <svg class="status-mark" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+                    <path d="M2.6 6.3 4.9 8.6 9.4 3.4" stroke="currentColor" stroke-width="1.3"
+                      stroke-linecap="round" stroke-linejoin="round" />
+                  </svg>
                   <span class="mark mono">accepted</span>
                   <span class="mono">emptying the cart from the cart page leaves it with no article</span>
                 </div>

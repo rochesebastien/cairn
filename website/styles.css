@@ -97,6 +97,12 @@
   --accent-hover: #e4e4e7;
   --accent-soft: rgba(255, 255, 255, 0.08);
 
+  /* status — the only hues in the system, verbatim in both themes.
+     Glyph and 2px row edge scale only: never a fill, never body text. */
+  --status-proven: #438440;
+  --status-broken: #e9484c;
+  --status-escalated: #e99a3f;
+
   /* shape */
   --radius-card: 12px;
   --radius: 8px;
@@ -582,6 +588,16 @@ svg {
   border-radius: var(--radius);
 }
 
+/* the app is shown in the theme the page is being read in */
+.shot .shot-light,
+[data-theme='light'] .shot .shot-dark {
+  display: none;
+}
+
+[data-theme='light'] .shot .shot-light {
+  display: block;
+}
+
 .shot-caption {
   margin: 16px 2px 0;
   color: var(--text-faint);
@@ -687,11 +703,11 @@ svg {
   color: var(--text);
 }
 
-/* ------------------------------------------------------- status, no colour */
+/* ------------------------------------------------------------------ status */
 
 /*
- * Status is carried by shape and weight: a 12px monochrome mark, always beside
- * its text label. Never a coloured pip, and never shape alone.
+ * The one place colour is allowed. Shape and hue agree, so neither is the only
+ * signal, and the text label always rides alongside. 12px, glyph scale only.
  */
 .status-mark {
   width: 12px;
@@ -702,6 +718,18 @@ svg {
 
 .status-mark.is-draft {
   color: var(--text-faint);
+}
+
+.status-mark.is-proven {
+  color: var(--status-proven);
+}
+
+.status-mark.is-broken {
+  color: var(--status-broken);
+}
+
+.status-mark.is-escalated {
+  color: var(--status-escalated);
 }
 
 .status-mark.is-retired {
@@ -724,9 +752,17 @@ svg {
   font-size: 14px;
 }
 
-/* broken and escalated keep a left edge — they are a queue, not a colour */
+/* broken and escalated keep a left edge, in their own status hue */
 .life-row.edged {
   border-left-color: var(--border-strong);
+}
+
+.life-row.edged:has(.is-broken) {
+  border-left-color: var(--status-broken);
+}
+
+.life-row.edged:has(.is-escalated) {
+  border-left-color: var(--status-escalated);
 }
 
 .life-name {
@@ -761,6 +797,10 @@ svg {
 
 .lint-row.no {
   border-left-color: var(--border-strong);
+}
+
+.lint-row .status-mark {
+  margin-top: 3px;
 }
 
 .lint-row .mark {
@@ -1036,14 +1076,19 @@ svg {
     padding: 5px;
   }
 
+  /* on a phone the gloss always drops to its own line — never a ragged mix */
   .life-row {
-    align-items: flex-start;
     flex-wrap: wrap;
-    gap: 4px 10px;
+    gap: 2px 10px;
+    padding-bottom: 8px;
   }
 
   .life-name {
-    min-width: 66px;
+    min-width: 0;
+  }
+
+  .life-what {
+    flex: 1 0 100%;
   }
 
   /* the tree keeps both columns on a phone by dropping the gloss below */
