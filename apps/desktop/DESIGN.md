@@ -175,6 +175,12 @@ By default it reads **every open repository**, over the **current calendar year*
 
 The **heatmap** is the one large coloured surface in the product, and it is the third record-surface exception. Alpha carries volume (four steps against the busiest day); hue carries the day's success rate: **≥ 90 % green, 60–90 % orange, below that red**, empty days on the greyscale. The thresholds are the point — "any red at all" would paint nearly every busy day red and say nothing, because one failing proof out of nine is weather, not a bad day. Hovering a tile opens a hover card with the day, the number of proofs replayed, and the passed/failed split as both a percentage and a count.
 
+The sidebar **collapses to a 64px icon rail** from a button beside the lockup; the choice persists. Collapsed, labels, counts and the repository names drop out while every icon keeps its row, so nothing jumps when it reopens, and the lockup gives way to the glyph.
+
+**Search** sits under the views because it searches across all of them — ⌘K or the sidebar link opens one field over a dimmed page (the Raycast shape), matching stone titles, intents, acceptance criteria, verbatim requests, ULIDs, surfaces and statuses, plus the views and repositories themselves, so it doubles as a command bar. Arrows move, Enter goes, Esc closes.
+
+The foot pairs a **Settings** link with the theme switch on its right. Settings opens a **70vw dialog with its own left rail** (General / Appearance / Repositories / Verify / About). Only two kinds of row belong in it: preferences that genuinely persist on this machine, and read-only facts about what the app is reading. Anything belonging to a cairn belongs in `.cairn/` — the Verify pane shows `cairn.config.ts` and never writes it.
+
 The sidebar holds the **full logo lockup**, the view nav (**Review / Cairn / Escalations / Runs**), the open-repos list ("open repo…" — the app has no database; the repo *is* the state), then a foot with the **Verify** launcher and the theme toggle. The sidebar sits on `--bg-base` with a single `border-right`; it is not a tinted panel. The main area renders one view at a time inside a bordered card. Selecting a stone opens the detail drawer as a right-side overlay with a dimmed backdrop (Esc closes it).
 
 View order mirrors value order: Review first — it is the home screen and the reason the app exists.

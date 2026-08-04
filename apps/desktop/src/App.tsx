@@ -1,7 +1,10 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAppState, useCairn, useProvenPulse } from "./lib/app-state.js";
 import { useTheme } from "./lib/theme.js";
+import { useSettings } from "./lib/settings.js";
 import { Sidebar, type ViewName } from "./components/Sidebar.js";
+import { SearchPalette } from "./components/SearchPalette.js";
+import { SettingsDialog } from "./components/SettingsDialog.js";
 import { ReviewView } from "./components/ReviewView.js";
 import { CairnView } from "./components/CairnView.js";
 import { EscalationsView } from "./components/EscalationsView.js";
@@ -12,9 +15,27 @@ import { Empty, ViewHeader } from "./components/bits.js";
 
 export function App(): JSX.Element {
   const { theme, toggle } = useTheme();
-  const { activeRoot, openRepo } = useAppState();
+  const { settings, set } = useSettings();
+  const { activeRoot, openRepo, selectRepo } = useAppState();
   const [view, setView] = useState<ViewName>("home");
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [collapsed, setCollapsed] = useState(settings.sidebarCollapsed);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+
+  // ⌘K / Ctrl-K opens the palette from anywhere, the way every tool does it.
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent): void => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        setSearchOpen((open) => !open);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+    };
+  }, []);
 
   const cairn = useCairn(activeRoot);
   const snapshot = cairn.data;
@@ -26,7 +47,26 @@ export function App(): JSX.Element {
 
   return (
     <div className="app-shell">
-      <Sidebar view={view} onView={setView} stones={stones} theme={theme} onToggleTheme={toggle} />
+      <Sidebar
+        view={view}
+        onView={setView}
+        stones={stones}
+        theme={theme}
+        onToggleTheme={toggle}
+        collapsed={collapsed}
+        onToggleCollapsed={() => {
+          setCollapsed((current) => {
+            set("sidebarCollapsed", !current);
+            return !current;
+          });
+        }}
+        onOpenSearch={() => {
+          setSearchOpen(true);
+        }}
+        onOpenSettings={() => {
+          setSettingsOpen(true);
+        }}
+      />
 
       <main className="main">
         <div className="view-card">
@@ -91,6 +131,36 @@ export function App(): JSX.Element {
           onOpen={setSelectedId}
           onClose={() => {
             setSelectedId(null);
+          }}
+        />
+      ) : null}
+
+      {searchOpen ? (
+        <SearchPalette
+          onClose={() => {
+            setSearchOpen(false);
+          }}
+          onView={setView}
+          onOpenStone={(root, stoneId) => {
+            // a stone may live in a repository other than the open one
+            if (root !== activeRoot) selectRepo(root);
+            setView("cairn");
+            setSelectedId(stoneId);
+          }}
+        />
+      ) : null}
+
+      {settingsOpen ? (
+        <SettingsDialog
+          onClose={() => {
+            setSettingsOpen(false);
+          }}
+          theme={theme}
+          onToggleTheme={toggle}
+          settings={settings}
+          onSet={(key, value) => {
+            set(key, value);
+            if (key === "sidebarCollapsed") setCollapsed(value as boolean);
           }}
         />
       ) : null}

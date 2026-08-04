@@ -190,6 +190,45 @@ export function CloseIcon({ className }: IconProps): JSX.Element {
   );
 }
 
+export function SearchIcon({ className }: IconProps): JSX.Element {
+  return (
+    <Svg className={className}>
+      <circle cx="7.2" cy="7.2" r="4.6" />
+      <path d="M10.6 10.6l3 3" />
+    </Svg>
+  );
+}
+
+/** Sliders, not a cog: a cog at 15px reads as a sun next to the theme switch. */
+export function SettingsIcon({ className }: IconProps): JSX.Element {
+  return (
+    <Svg className={className}>
+      <path d="M2.5 4.6h4M9.5 4.6h4M2.5 11.4h2.4M7.9 11.4h5.6" />
+      <circle cx="8" cy="4.6" r="1.7" />
+      <circle cx="6.4" cy="11.4" r="1.7" />
+    </Svg>
+  );
+}
+
+/** Collapse / expand the sidebar: a panel with its rail. */
+export function PanelIcon({ className }: IconProps): JSX.Element {
+  return (
+    <Svg className={className}>
+      <rect x="2.2" y="3" width="11.6" height="10" rx="2" />
+      <path d="M6.4 3v10" />
+    </Svg>
+  );
+}
+
+export function ArrowTurnIcon({ className }: IconProps): JSX.Element {
+  return (
+    <Svg className={className}>
+      <path d="M12.5 3.5v4a2 2 0 01-2 2H4" />
+      <path d="M6.4 7.4L3.8 9.6l2.6 2.2" />
+    </Svg>
+  );
+}
+
 export function MoonIcon({ className }: IconProps): JSX.Element {
   return (
     <Svg className={className}>
