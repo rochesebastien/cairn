@@ -5,6 +5,7 @@ import { lineageOf, runHistory } from "../lib/cairn.js";
 import { useProof } from "../lib/app-state.js";
 import { isTauri } from "../lib/tauri.js";
 import { absoluteTime, formatDuration, relativeTime, shortId } from "../lib/format.js";
+import { useLocale, useT } from "../lib/i18n.js";
 import { ExternalIcon, CloseIcon } from "./icons.js";
 import { StatusChip, StatusMark, SurfaceTag } from "./bits.js";
 
@@ -23,6 +24,8 @@ export function StoneDrawer({
   onClose: () => void;
   onOpen: (id: string) => void;
 }): JSX.Element {
+  const t = useT();
+  const locale = useLocale();
   const { stone } = record;
   const proof = useProof(snapshot.root, stone.proof);
   const ancestors = lineageOf(snapshot.stones, stone.id);
@@ -42,7 +45,7 @@ export function StoneDrawer({
 
   return (
     <>
-      <button type="button" className="detail-backdrop" aria-label="Close the stone" onClick={onClose} />
+      <button type="button" className="detail-backdrop" aria-label={t("drawer.closeStone")} onClick={onClose} />
       <aside className="detail-drawer" role="dialog" aria-modal="true" aria-label={stone.title}>
         <header className="drawer-head">
           <div style={{ flex: 1, minWidth: 0 }}>
@@ -53,11 +56,15 @@ export function StoneDrawer({
             </div>
             <h2 className="drawer-title">{stone.title}</h2>
             <p className="view-subtitle">
-              raised {relativeTime(stone.createdAt)}
-              {stone.lastGreen ? ` · last green ${relativeTime(stone.lastGreen.at)}` : " · never green"}
+              {stone.lastGreen
+                ? t("drawer.raisedGreen", {
+                    raised: relativeTime(stone.createdAt, locale),
+                    green: relativeTime(stone.lastGreen.at, locale),
+                  })
+                : `${t("drawer.raised", { raised: relativeTime(stone.createdAt, locale) })} · ${t("drawer.neverGreen")}`}
             </p>
           </div>
-          <button type="button" className="icon-btn" onClick={onClose} aria-label="Close">
+          <button type="button" className="icon-btn" onClick={onClose} aria-label={t("drawer.close")}>
             <CloseIcon className="nav-icon" />
           </button>
         </header>
@@ -65,16 +72,16 @@ export function StoneDrawer({
         <div className="drawer-body">
           {record.body ? (
             <section className="drawer-section">
-              <p className="section-label">intent</p>
+              <p className="section-label">{t("drawer.intent")}</p>
               <p style={{ margin: 0, color: "var(--text-dim)", whiteSpace: "pre-wrap" }}>{record.body}</p>
             </section>
           ) : null}
 
           <section className="drawer-section">
-            <p className="section-label">acceptance</p>
+            <p className="section-label">{t("drawer.acceptance")}</p>
             {stone.acceptance.length === 0 ? (
               <p className="muted" style={{ margin: 0 }}>
-                No criteria on this stone.
+                {t("drawer.noAcceptance")}
               </p>
             ) : (
               <ul className="acceptance" style={{ margin: 0 }}>
@@ -86,23 +93,25 @@ export function StoneDrawer({
           </section>
 
           <section className="drawer-section">
-            <p className="section-label">provenance</p>
+            <p className="section-label">{t("drawer.provenance")}</p>
             <p className="provenance-body" style={{ margin: 0 }}>
               {stone.provenance.request}
             </p>
             <p className="view-subtitle" style={{ marginTop: 8 }}>
-              {stone.provenance.attempts !== undefined
-                ? `${stone.provenance.attempts} attempt${stone.provenance.attempts === 1 ? "" : "s"}`
-                : "attempts not recorded"}
-              {stone.provenance.tokens !== undefined
-                ? ` · ${stone.provenance.tokens.toLocaleString("en-US")} tokens`
-                : ""}
+              {stone.provenance.attempts === undefined
+                ? t("drawer.noAttempts")
+                : stone.provenance.tokens === undefined
+                  ? t("drawer.attempts", { attempts: stone.provenance.attempts })
+                  : t("drawer.attemptsTokens", {
+                      attempts: stone.provenance.attempts,
+                      tokens: stone.provenance.tokens.toLocaleString(locale),
+                    })}
             </p>
           </section>
 
           {ancestors.length > 0 ? (
             <section className="drawer-section">
-              <p className="section-label">lineage</p>
+              <p className="section-label">{t("drawer.lineage")}</p>
               <div className="lineage" style={{ marginLeft: 0 }}>
                 {ancestors.map((ancestor) => (
                   <button
@@ -115,6 +124,7 @@ export function StoneDrawer({
                   >
                     <StatusMark status={ancestor.stone.status} />
                     <span className="stone-title">{ancestor.stone.title}</span>
+                    {/* a status is a value in .cairn/ — verbatim in every language */}
                     <span className="stone-status">{ancestor.stone.status}</span>
                     <span className="id-mono">{shortId(ancestor.stone.id)}</span>
                   </button>
@@ -124,47 +134,51 @@ export function StoneDrawer({
           ) : null}
 
           <section className="drawer-section">
-            <p className="section-label">proof</p>
+            <p className="section-label">{t("drawer.proof")}</p>
             {stone.proof ? (
               <>
                 <div className="proof-path">
+                  {/* the proof's path and its hash are record: never translated */}
                   <span>{stone.proof}</span>
                   <span>
-                    {stone.lastGreen?.proofHash ? `sha256 ${stone.lastGreen.proofHash.slice(0, 12)}` : "never hashed"}
+                    {stone.lastGreen?.proofHash
+                      ? `sha256 ${stone.lastGreen.proofHash.slice(0, 12)}`
+                      : t("drawer.neverHashed")}
                   </span>
                 </div>
                 <div className="proof-view">
                   <pre className="mono">
                     {proof.isPending
-                      ? "reading…"
+                      ? t("drawer.reading")
                       : proof.isError
-                        ? `Cannot read the proof: ${(proof.error as Error).message}`
+                        ? t("drawer.cannotReadProof", { message: (proof.error as Error).message })
                         : proof.data}
                   </pre>
                 </div>
               </>
             ) : (
               <p className="muted" style={{ margin: 0 }}>
-                No proof yet — cairn-warden writes it once the stone is approved.
+                {t("drawer.noProof")} — {t("drawer.noProofHint")}
               </p>
             )}
           </section>
 
           <section className="drawer-section">
-            <p className="section-label">run history</p>
+            <p className="section-label">{t("drawer.runs")}</p>
             {runs.length === 0 ? (
               <p className="muted" style={{ margin: 0 }}>
-                No run recorded for this stone.
+                {t("drawer.noRuns")}
               </p>
             ) : (
               <div>
                 {runs.map((run) => (
                   <div className="run-row" key={run.id}>
                     <StatusMark status={run.verdict === "green" ? "proven" : "broken"} />
-                    <span className="run-verdict">{run.verdict === "green" ? "pass" : "fail"}</span>
+                    <span className="run-verdict">{t(run.verdict === "green" ? "drawer.pass" : "drawer.fail")}</span>
+                    {/* a run timestamp and its commit sha are record: verbatim */}
                     <span className="run-when">{absoluteTime(run.at)}</span>
                     {run.commit ? <span className="whisper">{run.commit}</span> : null}
-                    <span>{run.derived ? "from lastGreen" : formatDuration(run.durationMs)}</span>
+                    <span>{run.derived ? t("drawer.fromLastGreen") : formatDuration(run.durationMs, locale)}</span>
                   </div>
                 ))}
               </div>
@@ -173,7 +187,7 @@ export function StoneDrawer({
 
           {report || lastRed ? (
             <section className="drawer-section">
-              <p className="section-label">last failure</p>
+              <p className="section-label">{t("drawer.failure")}</p>
               <div className="failure-block">
                 {report ? (
                   <>
@@ -184,7 +198,7 @@ export function StoneDrawer({
                       </pre>
                     ) : null}
                     {report.screenshot ? (
-                      <img className="trace-shot" src={report.screenshot} alt="Playwright screenshot of the failure" />
+                      <img className="trace-shot" src={report.screenshot} alt={t("drawer.shotAlt")} />
                     ) : null}
                     {report.trace ? (
                       <button
@@ -194,17 +208,16 @@ export function StoneDrawer({
                         onClick={() => {
                           if (isTauri()) void openExternal(`${snapshot.root}/${report.trace}`);
                         }}
-                        title={isTauri() ? "open the trace with the system handler" : "available in the desktop build"}
+                        title={t(isTauri() ? "drawer.openTraceTitle" : "drawer.desktopOnly")}
                       >
                         <ExternalIcon className="nav-icon" />
-                        open trace
+                        {t("drawer.openTrace")}
                       </button>
                     ) : null}
                   </>
                 ) : (
                   <p style={{ margin: 0, color: "var(--text-dim)" }}>
-                    Red on {absoluteTime(lastRed?.at ?? "")} — no warden report was stored. The run log holds the
-                    Playwright output.
+                    {t("drawer.redNoReport", { when: absoluteTime(lastRed?.at ?? "") })}
                   </p>
                 )}
               </div>

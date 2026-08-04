@@ -13,13 +13,16 @@
 import { useMemo, useState } from "react";
 import { useAllCairns, useAppState } from "../lib/app-state.js";
 import { repoName, type RunRecord } from "../lib/cairn.js";
+import { useLocale, useT, useTNode, type TranslateFn } from "../lib/i18n.js";
 import {
   buildHeatmap,
   busiestDay,
   formatDay,
   heatLevel,
   heatTone,
+  monthLabel,
   percent,
+  weekdayLabels,
   yearsWithRuns,
   type HeatDay,
 } from "../lib/heatmap.js";
@@ -35,6 +38,9 @@ interface Hovered {
 const ALL = "__all__";
 
 export function HomeView(): JSX.Element {
+  const t = useT();
+  const tn = useTNode();
+  const locale = useLocale();
   const { repos } = useAppState();
   const results = useAllCairns(repos);
 
@@ -62,6 +68,7 @@ export function HomeView(): JSX.Element {
   const busiest = useMemo(() => busiestDay(map), [map]);
   const successRate = map.totalRuns > 0 ? map.totalGreen / map.totalRuns : null;
   const loading = results.some((result) => result.isPending);
+  const weekdays = useMemo(() => weekdayLabels(locale), [locale]);
 
   return (
     <div className="home-view">
@@ -69,29 +76,33 @@ export function HomeView(): JSX.Element {
         <CairnMark className="home-mark" />
       </header>
 
-      <section className="heat" aria-label={`Proof runs in ${activeYear}`}>
+      <section className="heat" aria-label={t("home.heatLabel", { year: activeYear })}>
         <div className="heat-top">
           <div className="heat-titles">
-            <h2 className="heat-title">Proofs replayed</h2>
+            <h2 className="heat-title">{t("home.title")}</h2>
             <span className="heat-caption">
               {loading
-                ? "reading the cairns…"
-                : `${map.totalRuns} in ${activeYear} · ${
-                    project === ALL ? `${repos.length} repositories` : repoName(project)
-                  }`}
+                ? t("home.reading")
+                : project === ALL
+                  ? t("home.captionAll", { count: map.totalRuns, year: activeYear, repos: repos.length })
+                  : t("home.captionOne", {
+                      count: map.totalRuns,
+                      year: activeYear,
+                      repo: repoName(project),
+                    })}
             </span>
           </div>
 
           <div className="heat-controls">
             <label className="select">
-              <span className="select-label">Project</span>
+              <span className="select-label">{t("home.project")}</span>
               <select
                 value={project}
                 onChange={(event) => {
                   setProject(event.target.value);
                 }}
               >
-                <option value={ALL}>All projects</option>
+                <option value={ALL}>{t("home.allProjects")}</option>
                 {repos.map((root) => (
                   <option key={root} value={root}>
                     {repoName(root)}
@@ -102,7 +113,7 @@ export function HomeView(): JSX.Element {
             </label>
 
             <label className="select">
-              <span className="select-label">Year</span>
+              <span className="select-label">{t("home.year")}</span>
               <select
                 value={activeYear}
                 onChange={(event) => {
@@ -128,20 +139,20 @@ export function HomeView(): JSX.Element {
                 .filter((month) => month.column <= map.weeks.length - 3)
                 .map((month) => (
                   <span
-                    key={`${month.label}-${month.column}`}
+                    key={`${month.month}-${month.column}`}
                     className="heat-month"
                     style={{ gridColumnStart: month.column + 1 }}
                   >
-                    {month.label}
+                    {monthLabel(month.month, locale)}
                   </span>
                 ))}
             </div>
 
             <div className="heat-body">
               <div className="heat-days" aria-hidden="true">
-                <span>Mon</span>
-                <span>Wed</span>
-                <span>Fri</span>
+                {weekdays.map((label) => (
+                  <span key={label}>{label}</span>
+                ))}
               </div>
 
               <div
@@ -165,8 +176,12 @@ export function HomeView(): JSX.Element {
                           role="gridcell"
                           aria-label={
                             day.total === 0
-                              ? `${formatDay(day.date)}: no proof replayed`
-                              : `${formatDay(day.date)}: ${day.total} proofs, ${percent(day.successRate ?? 0)} passed`
+                              ? t("home.cellEmpty", { day: formatDay(day.date, locale) })
+                              : t("home.cellRuns", {
+                                  day: formatDay(day.date, locale),
+                                  count: day.total,
+                                  percent: percent(day.successRate ?? 0, locale),
+                                })
                           }
                           onMouseEnter={(event) => {
                             const box = event.currentTarget.getBoundingClientRect();
@@ -194,33 +209,33 @@ export function HomeView(): JSX.Element {
 
         <footer className="heat-foot">
           <div className="heat-stats">
-            <span>
-              <strong>{map.activeDays}</strong> days with a run
-            </span>
+            <span>{tn("home.activeDays", { count: <strong>{map.activeDays}</strong> })}</span>
+            <span aria-hidden="true">·</span>
+            <span>{tn("home.streak", { count: <strong>{map.longestStreak}</strong> })}</span>
             <span aria-hidden="true">·</span>
             <span>
-              longest streak <strong>{map.longestStreak}</strong> days
+              {successRate === null
+                ? t("home.noRun")
+                : t("home.passRate", { percent: percent(successRate, locale) })}
             </span>
-            <span aria-hidden="true">·</span>
-            <span>{successRate === null ? "no run yet" : `${percent(successRate)} of runs passed`}</span>
           </div>
 
           <div className="heat-legend">
-            <span className="heat-legend-label">less</span>
+            <span className="heat-legend-label">{t("home.less")}</span>
             {[1, 2, 3, 4].map((level) => (
               <span key={level} className={`heat-cell is-pass level-${level}`} aria-hidden="true" />
             ))}
-            <span className="heat-legend-label">more</span>
+            <span className="heat-legend-label">{t("home.more")}</span>
             <span className="heat-legend-sep" aria-hidden="true" />
             <span className="heat-cell is-mixed level-4" aria-hidden="true" />
-            <span className="heat-legend-label">failures creeping in</span>
+            <span className="heat-legend-label">{t("home.creeping")}</span>
             <span className="heat-cell is-fail level-4" aria-hidden="true" />
-            <span className="heat-legend-label">a bad day</span>
+            <span className="heat-legend-label">{t("home.badDay")}</span>
           </div>
         </footer>
       </section>
 
-      {hovered ? <HeatCard hovered={hovered} /> : null}
+      {hovered ? <HeatCard hovered={hovered} t={t} locale={locale} /> : null}
     </div>
   );
 }
@@ -237,7 +252,7 @@ function ChevronDown(): JSX.Element {
  * The hover card. Fixed-positioned from the tile's own rect so it escapes the
  * scroll container, and clamped to the viewport so edge tiles stay readable.
  */
-function HeatCard({ hovered }: { hovered: Hovered }): JSX.Element {
+function HeatCard({ hovered, t, locale }: { hovered: Hovered; t: TranslateFn; locale: string }): JSX.Element {
   const { day, x, y } = hovered;
   const WIDTH = 232;
   const left = Math.min(Math.max(x - WIDTH / 2, 12), window.innerWidth - WIDTH - 12);
@@ -246,15 +261,15 @@ function HeatCard({ hovered }: { hovered: Hovered }): JSX.Element {
 
   return (
     <div className="hover-card" role="tooltip" style={{ left, top: y - 12, width: WIDTH }}>
-      <div className="hover-day">{formatDay(day.date)}</div>
+      <div className="hover-day">{formatDay(day.date, locale)}</div>
 
       {day.total === 0 ? (
-        <div className="hover-empty">No proof replayed</div>
+        <div className="hover-empty">{t("heat.noProof")}</div>
       ) : (
         <>
           <div className="hover-count">
             <span className="hover-n mono">{day.total}</span>
-            <span className="hover-unit">{day.total === 1 ? "proof replayed" : "proofs replayed"}</span>
+            <span className="hover-unit">{day.total === 1 ? t("heat.one") : t("heat.many")}</span>
           </div>
 
           <div className="hover-bar" aria-hidden="true">
@@ -267,20 +282,20 @@ function HeatCard({ hovered }: { hovered: Hovered }): JSX.Element {
             <div className="hover-row">
               <dt>
                 <span className="hover-key is-pass" aria-hidden="true" />
-                passed
+                {t("heat.passed")}
               </dt>
               <dd>
-                <span className="mono">{percent(pass)}</span>
+                <span className="mono">{percent(pass, locale)}</span>
                 <span className="hover-abs mono">{day.green}</span>
               </dd>
             </div>
             <div className="hover-row">
               <dt>
                 <span className="hover-key is-fail" aria-hidden="true" />
-                failed
+                {t("heat.failed")}
               </dt>
               <dd>
-                <span className="mono">{percent(fail)}</span>
+                <span className="mono">{percent(fail, locale)}</span>
                 <span className="hover-abs mono">{day.red}</span>
               </dd>
             </div>
@@ -288,10 +303,10 @@ function HeatCard({ hovered }: { hovered: Hovered }): JSX.Element {
               <div className="hover-row">
                 <dt>
                   <span className="hover-key is-skip" aria-hidden="true" />
-                  skipped
+                  {t("heat.skipped")}
                 </dt>
                 <dd>
-                  <span className="mono">{percent(day.skipped / day.total)}</span>
+                  <span className="mono">{percent(day.skipped / day.total, locale)}</span>
                   <span className="hover-abs mono">{day.skipped}</span>
                 </dd>
               </div>

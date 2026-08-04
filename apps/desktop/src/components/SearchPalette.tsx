@@ -12,6 +12,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { ViewName } from "./Sidebar.js";
 import { useAllCairns, useAppState } from "../lib/app-state.js";
 import { repoName, type StoneRecord } from "../lib/cairn.js";
+import { useT } from "../lib/i18n.js";
 import { StatusMark } from "./bits.js";
 import { ArrowTurnIcon, CairnIcon, EscalationIcon, FolderIcon, ReviewIcon, RunsIcon, SearchIcon } from "./icons.js";
 
@@ -20,12 +21,18 @@ type Result =
   | { kind: "view"; id: string; view: ViewName; label: string; hint: string }
   | { kind: "repo"; id: string; root: string };
 
-const VIEWS: { view: ViewName; label: string; hint: string; Icon: (p: { className?: string }) => JSX.Element }[] = [
-  { view: "home", label: "Home", hint: "the heatmap", Icon: SearchIcon },
-  { view: "review", label: "Review", hint: "drafts waiting to be read", Icon: ReviewIcon },
-  { view: "cairn", label: "Cairn", hint: "every stone", Icon: CairnIcon },
-  { view: "escalations", label: "Escalations", hint: "out of attempts", Icon: EscalationIcon },
-  { view: "runs", label: "Runs", hint: "verify output", Icon: RunsIcon },
+/** Dictionary keys, resolved at render — the palette matches on the *shown* words. */
+const VIEWS: {
+  view: ViewName;
+  labelKey: string;
+  hintKey: string;
+  Icon: (p: { className?: string }) => JSX.Element;
+}[] = [
+  { view: "home", labelKey: "nav.home", hintKey: "search.hint.home", Icon: SearchIcon },
+  { view: "review", labelKey: "nav.review", hintKey: "search.hint.review", Icon: ReviewIcon },
+  { view: "cairn", labelKey: "nav.cairn", hintKey: "search.hint.cairn", Icon: CairnIcon },
+  { view: "escalations", labelKey: "nav.escalations", hintKey: "search.hint.escalations", Icon: EscalationIcon },
+  { view: "runs", labelKey: "nav.runs", hintKey: "search.hint.runs", Icon: RunsIcon },
 ];
 
 /** Substring match over everything a stone carries, plus a crude relevance. */
@@ -51,6 +58,7 @@ export function SearchPalette({
   onView: (view: ViewName) => void;
   onOpenStone: (root: string, stoneId: string) => void;
 }): JSX.Element {
+  const t = useT();
   const { repos } = useAppState();
   const results = useAllCairns(repos);
   const [query, setQuery] = useState("");
@@ -65,9 +73,18 @@ export function SearchPalette({
   const needle = query.trim().toLowerCase();
 
   const found = useMemo<Result[]>(() => {
-    const views: Result[] = VIEWS.filter(
-      (entry) => needle === "" || entry.label.toLowerCase().includes(needle) || entry.hint.includes(needle),
-    ).map((entry) => ({ kind: "view", id: `view-${entry.view}`, view: entry.view, label: entry.label, hint: entry.hint }));
+    const views: Result[] = VIEWS.map((entry) => ({
+      kind: "view" as const,
+      id: `view-${entry.view}`,
+      view: entry.view,
+      label: t(entry.labelKey),
+      hint: t(entry.hintKey),
+    })).filter(
+      (entry) =>
+        needle === "" ||
+        entry.label.toLowerCase().includes(needle) ||
+        entry.hint.toLowerCase().includes(needle),
+    );
 
     const reposFound: Result[] = repos
       .filter((root) => needle !== "" && repoName(root).toLowerCase().includes(needle))
@@ -94,7 +111,7 @@ export function SearchPalette({
     stones.sort((a, b) => b.score - a.score);
 
     return [...views, ...reposFound, ...stones.slice(0, 40)];
-  }, [needle, repos, results]);
+  }, [needle, repos, results, t]);
 
   useEffect(() => {
     setCursor(0);
@@ -127,7 +144,7 @@ export function SearchPalette({
         className="palette"
         role="dialog"
         aria-modal="true"
-        aria-label="Search the cairn"
+        aria-label={t("search.dialogLabel")}
         onKeyDown={(event) => {
           if (event.key === "Escape") {
             event.preventDefault();
@@ -150,21 +167,22 @@ export function SearchPalette({
             ref={inputRef}
             className="palette-input"
             value={query}
-            placeholder="Search stones, criteria, ULIDs, views…"
+            placeholder={t("search.placeholder")}
             onChange={(event) => {
               setQuery(event.target.value);
             }}
-            aria-label="Search"
+            aria-label={t("nav.search")}
           />
+          {/* a key cap, not a word */}
           <kbd className="kbd">esc</kbd>
         </div>
 
         <div className="palette-list" ref={listRef}>
           {found.length === 0 ? (
-            <div className="palette-empty">Nothing matches “{query}”.</div>
+            <div className="palette-empty">{t("search.empty", { query })}</div>
           ) : (
             <>
-              {commands.length > 0 ? <div className="palette-group">Go to</div> : null}
+              {commands.length > 0 ? <div className="palette-group">{t("search.goTo")}</div> : null}
               {commands.map((result) => {
                 const index = found.indexOf(result);
                 const Icon =
@@ -189,14 +207,14 @@ export function SearchPalette({
                       {result.kind === "view" ? result.label : repoName(result.root)}
                     </span>
                     <span className="palette-row-hint">
-                      {result.kind === "view" ? result.hint : "repository"}
+                      {result.kind === "view" ? result.hint : t("search.repository")}
                     </span>
                     {index === cursor ? <ArrowTurnIcon className="palette-row-enter" /> : null}
                   </button>
                 );
               })}
 
-              {stones.length > 0 ? <div className="palette-group">Stones</div> : null}
+              {stones.length > 0 ? <div className="palette-group">{t("search.stones")}</div> : null}
               {stones.map((result) => {
                 if (result.kind !== "stone") return null;
                 const index = found.indexOf(result);
@@ -229,16 +247,16 @@ export function SearchPalette({
         <div className="palette-foot">
           <span>
             <kbd className="kbd">↑</kbd>
-            <kbd className="kbd">↓</kbd> move
+            <kbd className="kbd">↓</kbd> {t("search.move")}
           </span>
           <span>
-            <kbd className="kbd">↵</kbd> open
+            <kbd className="kbd">↵</kbd> {t("search.open")}
           </span>
           <span>
-            <kbd className="kbd">esc</kbd> close
+            <kbd className="kbd">esc</kbd> {t("search.close")}
           </span>
           <span className="palette-foot-count">
-            {stones.length} {stones.length === 1 ? "stone" : "stones"}
+            {t(stones.length === 1 ? "search.countOne" : "search.count", { count: stones.length })}
           </span>
         </div>
       </div>

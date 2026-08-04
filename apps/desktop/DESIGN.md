@@ -143,6 +143,19 @@ Loose, but consistent.
 - 16px above footers and hint rows
 - Stone cards in a list: 8px apart; lineage chains: 4px (they read as one object)
 
+## Language
+
+The interface ships in **English (default) and French**, switched from Settings → Language and persisted with the other preferences. One dictionary, `src/lib/i18n.tsx`, holds both languages; there is no i18n library.
+
+**The vocabulary never translates.** `cairn`, `stone`, `proof`, `warden`, `mason`, `verify`, `amend` and the five statuses (`draft`, `proven`, `broken`, `escalated`, `retired`) stay in English in every language. Two reasons, and both are load-bearing:
+
+- the statuses are **values written into `.cairn/` files**, not labels — a French UI showing "prouvée" while the file says `proven` would be lying about the data;
+- the CLI, the skills and the docs are English, so a French reader must still recognise what `cairn verify` and `cairn amend` do. The sidebar button says **Verify** in both languages because it runs exactly that command.
+
+French therefore reads *"les stones"*, *"une proof rejouée"*, *"le rapport du warden"*. Everything else — labels, hints, prose, dates, numbers — is translated, and dates and percentages follow the chosen language through `useLocale()`, not the OS.
+
+French runs about 20% longer than English. The tight spots are the 244px sidebar, the heatmap legend and the review action row; check them at 900px width before shipping a new string.
+
 ## Brand
 
 The logo is `assets/cairn-logo.svg` — **the stone glyph and the "Cairn" wordmark together, as one lockup**. Use the complete lockup wherever the product is named: the sidebar head, the site nav, the site footer. Do not rebuild the wordmark in CSS text next to the glyph, and do not ship the glyph alone as if it were the logo.

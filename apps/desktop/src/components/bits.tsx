@@ -16,6 +16,10 @@ const MARKS: Record<StoneStatus, (props: { className?: string | undefined }) => 
  * A status, carried by shape and weight instead of a hue. Pair it with
  * `StatusLabel` (or a `StatusChip`) wherever the layout has room for words —
  * the glyph alone is never the whole message.
+ *
+ * The five status names — and the surface tag — are values written into
+ * `.cairn/` files, so they are shown verbatim in every language. That is the
+ * one rule of this app's vocabulary, not an untranslated string.
  */
 export function StatusMark({
   status,

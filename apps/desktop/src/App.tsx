@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { useAppState, useCairn, useProvenPulse } from "./lib/app-state.js";
 import { useTheme } from "./lib/theme.js";
-import { useSettings } from "./lib/settings.js";
-import { LangProvider } from "./lib/i18n.js";
+import { useSettings, type Settings } from "./lib/settings.js";
+import { LangProvider, useT } from "./lib/i18n.js";
 import { Sidebar, type ViewName } from "./components/Sidebar.js";
 import { SearchPalette } from "./components/SearchPalette.js";
 import { SettingsDialog } from "./components/SettingsDialog.js";
@@ -14,9 +14,28 @@ import { HomeView } from "./components/HomeView.js";
 import { StoneDrawer } from "./components/StoneDrawer.js";
 import { Empty, ViewHeader } from "./components/bits.js";
 
+/**
+ * The language has to be provided *above* the shell, not beside it: everything
+ * below — including this file's own empty states — reads it through useT().
+ */
 export function App(): JSX.Element {
-  const { theme, toggle } = useTheme();
   const { settings, set } = useSettings();
+  return (
+    <LangProvider lang={settings.language}>
+      <Shell settings={settings} set={set} />
+    </LangProvider>
+  );
+}
+
+function Shell({
+  settings,
+  set,
+}: {
+  settings: Settings;
+  set: <K extends keyof Settings>(key: K, value: Settings[K]) => void;
+}): JSX.Element {
+  const t = useT();
+  const { theme, toggle } = useTheme();
   const { activeRoot, openRepo, selectRepo } = useAppState();
   const [view, setView] = useState<ViewName>("home");
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -47,7 +66,6 @@ export function App(): JSX.Element {
   const selected = selectedId ? stones.find((record) => record.stone.id === selectedId) : undefined;
 
   return (
-    <LangProvider lang={settings.language}>
     <div className="app-shell">
       <Sidebar
         view={view}
@@ -74,12 +92,10 @@ export function App(): JSX.Element {
         <div className="view-card">
           {activeRoot === null ? (
             <>
-              <ViewHeader title="Cairn" subtitle="no repository open" />
+              {/* "Cairn" is the product, not a word to translate */}
+              <ViewHeader title="Cairn" subtitle={t("shell.noRepo")} />
               <div className="view-body">
-                <Empty
-                  title="Open a repository"
-                  hint="Cairn has no database — the repository is the state. Pick a folder that owns a .cairn/ directory."
-                />
+                <Empty title={t("shell.openRepoTitle")} hint={t("shell.openRepoHint")} />
                 <div className="row" style={{ justifyContent: "center" }}>
                   <button
                     type="button"
@@ -88,26 +104,23 @@ export function App(): JSX.Element {
                       void openRepo();
                     }}
                   >
-                    Open repo…
+                    {t("shell.openRepo")}
                   </button>
                 </div>
               </div>
             </>
           ) : cairn.isPending ? (
             <>
-              <ViewHeader title="Reading the cairn" subtitle={activeRoot} />
+              <ViewHeader title={t("shell.reading")} subtitle={activeRoot} />
               <div className="view-body">
-                <Empty title="Reading .cairn/…" />
+                <Empty title={t("shell.readingBody")} />
               </div>
             </>
           ) : cairn.isError ? (
             <>
-              <ViewHeader title="Cannot read the cairn" subtitle={activeRoot} />
+              <ViewHeader title={t("shell.cannotRead")} subtitle={activeRoot} />
               <div className="view-body">
-                <Empty
-                  title={(cairn.error as Error).message}
-                  hint="Check that this folder owns a .cairn/ directory, then try again."
-                />
+                <Empty title={(cairn.error as Error).message} hint={t("shell.cannotReadHint")} />
               </div>
             </>
           ) : view === "home" ? (
@@ -167,6 +180,5 @@ export function App(): JSX.Element {
         />
       ) : null}
     </div>
-    </LangProvider>
   );
 }

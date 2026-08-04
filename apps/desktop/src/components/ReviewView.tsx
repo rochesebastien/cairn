@@ -2,12 +2,13 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { StoneRecord } from "../lib/cairn.js";
 import { useAppState, type Decision } from "../lib/app-state.js";
 import { relativeTime, shortId } from "../lib/format.js";
+import { useLocale, useT, useTNode, type TranslateFn } from "../lib/i18n.js";
 import { Empty, Kbd, StatusLabel, StatusMark, SurfaceTag, ViewHeader } from "./bits.js";
 
-const DECISION_LABEL: Record<Decision, string> = {
-  approved: "approved",
-  rephrase: "sent back for rephrasing",
-  rejected: "rejected",
+const DECISION_KEY: Record<Decision, string> = {
+  approved: "review.decisionApproved",
+  rephrase: "review.decisionRephrase",
+  rejected: "review.decisionRejected",
 };
 
 /**
@@ -23,6 +24,9 @@ export function ReviewView({
   onOpen: (id: string) => void;
   drawerOpen: boolean;
 }): JSX.Element {
+  const t = useT();
+  const tn = useTNode();
+  const locale = useLocale();
   const { decisions, decide, undecide } = useAppState();
   const [cursor, setCursor] = useState(0);
   const listRef = useRef<HTMLDivElement>(null);
@@ -81,33 +85,35 @@ export function ReviewView({
   return (
     <>
       <ViewHeader
-        title="Review"
+        title={t("review.title")}
         subtitle={
           drafts.length === 0
-            ? "nothing waiting — the mason has raised no new stones"
-            : `${pending.length} of ${drafts.length} draft${drafts.length === 1 ? "" : "s"} still to read`
+            ? t("review.subtitleEmpty")
+            : t("review.subtitle", { done: pending.length, total: drafts.length })
         }
       />
       <div className="view-body" ref={listRef}>
         {decided > 0 ? (
           <p className="pending-note">
-            {decided} decision{decided === 1 ? "" : "s"} recorded in this session only. Writing them back to the
-            cairn needs the MCP wiring (<span className="mono">create_draft</span> /{" "}
-            <span className="mono">amend_stone</span>) — the stones below are still drafts on disk.
+            {tn("review.sessionNote", {
+              count: decided,
+              /* MCP tool names — an API surface, not prose */
+              createDraft: <span className="mono">create_draft</span>,
+              amendStone: <span className="mono">amend_stone</span>,
+            })}
           </p>
         ) : null}
 
         {drafts.length === 0 ? (
-          <Empty
-            title="No drafts to review"
-            hint="cairn-mason writes drafts into .cairn/stones as it extracts intents. They appear here."
-          />
+          <Empty title={t("review.empty")} hint={t("review.emptyHint")} />
         ) : (
           <div className="review-view">
             {drafts.map((record, index) => (
               <ReviewCard
                 key={record.stone.id}
                 record={record}
+                t={t}
+                locale={locale}
                 selected={index === cursor}
                 decision={decisions[record.stone.id]}
                 onSelect={() => {
@@ -127,19 +133,20 @@ export function ReviewView({
           </div>
         )}
       </div>
+      {/* key caps, not words: they name the physical key in every language */}
       <footer className="view-foot">
         <Kbd>j</Kbd>
         <Kbd>k</Kbd>
-        <span>move</span>
+        <span>{t("review.kbdMove")}</span>
         <span className="dot-sep">·</span>
         <Kbd>a</Kbd>
-        <span>approve</span>
+        <span>{t("review.kbdApprove")}</span>
         <span className="dot-sep">·</span>
         <Kbd>↵</Kbd>
-        <span>open the stone</span>
+        <span>{t("review.kbdOpen")}</span>
         <span className="dot-sep">·</span>
         <Kbd>esc</Kbd>
-        <span>close</span>
+        <span>{t("review.kbdClose")}</span>
       </footer>
     </>
   );
@@ -147,6 +154,8 @@ export function ReviewView({
 
 function ReviewCard({
   record,
+  t,
+  locale,
   selected,
   decision,
   onSelect,
@@ -155,6 +164,8 @@ function ReviewCard({
   onOpen,
 }: {
   record: StoneRecord;
+  t: TranslateFn;
+  locale: string;
   selected: boolean;
   decision: Decision | undefined;
   onSelect: () => void;
@@ -176,7 +187,7 @@ function ReviewCard({
         <span className="id-mono">{shortId(stone.id)}</span>
         <SurfaceTag surface={stone.surface} />
         <span className="dot-sep">·</span>
-        <span>raised {relativeTime(stone.createdAt)}</span>
+        <span>{t("review.raised", { when: relativeTime(stone.createdAt, locale) })}</span>
       </div>
 
       <h2 className="review-title">{stone.title}</h2>
@@ -192,12 +203,12 @@ function ReviewCard({
         </>
       ) : (
         <p className="muted" style={{ marginTop: 12 }}>
-          No acceptance criteria yet.
+          {t("review.noAcceptance")}
         </p>
       )}
 
       <details className="provenance">
-        <summary>what was actually asked</summary>
+        <summary>{t("review.provenance")}</summary>
         <p className="provenance-body">{stone.provenance.request}</p>
       </details>
 
@@ -206,11 +217,11 @@ function ReviewCard({
           <>
             <span className="decision">
               <StatusMark status={decision === "approved" ? "proven" : "draft"} />
-              {DECISION_LABEL[decision]} — in this session
+              {t("review.decisionNote", { decision: t(DECISION_KEY[decision]) })}
             </span>
             <span className="spacer" />
             <button type="button" className="btn btn-ghost btn-small" onClick={onUndo}>
-              undo
+              {t("review.undo")}
             </button>
           </>
         ) : (
@@ -222,7 +233,7 @@ function ReviewCard({
                 onDecide("approved");
               }}
             >
-              Approve
+              {t("review.approve")}
             </button>
             <button
               type="button"
@@ -231,7 +242,7 @@ function ReviewCard({
                 onDecide("rephrase");
               }}
             >
-              Rephrase
+              {t("review.rephrase")}
             </button>
             <button
               type="button"
@@ -240,11 +251,11 @@ function ReviewCard({
                 onDecide("rejected");
               }}
             >
-              Reject
+              {t("review.reject")}
             </button>
             <span className="spacer" />
             <button type="button" className="btn btn-ghost btn-small" onClick={onOpen}>
-              open
+              {t("review.open")}
             </button>
           </>
         )}

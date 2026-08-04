@@ -2,6 +2,7 @@ import type { StoneRecord, StoneStatus } from "../lib/cairn.js";
 import { countByStatus, repoName } from "../lib/cairn.js";
 import { useAppState } from "../lib/app-state.js";
 import type { Theme } from "../lib/theme.js";
+import { useT } from "../lib/i18n.js";
 import { StatusMark } from "./bits.js";
 import {
   CairnIcon,
@@ -24,13 +25,14 @@ export type ViewName = "home" | "review" | "cairn" | "escalations" | "runs";
 
 const NAV: {
   id: Exclude<ViewName, "home">;
-  label: string;
+  /** Dictionary key — the label itself is resolved at render, in the UI language. */
+  labelKey: string;
   Icon: (props: { className?: string | undefined }) => JSX.Element;
 }[] = [
-  { id: "review", label: "Review", Icon: ReviewIcon },
-  { id: "cairn", label: "Cairn", Icon: CairnIcon },
-  { id: "escalations", label: "Escalations", Icon: EscalationIcon },
-  { id: "runs", label: "Runs", Icon: RunsIcon },
+  { id: "review", labelKey: "nav.review", Icon: ReviewIcon },
+  { id: "cairn", labelKey: "nav.cairn", Icon: CairnIcon },
+  { id: "escalations", labelKey: "nav.escalations", Icon: EscalationIcon },
+  { id: "runs", labelKey: "nav.runs", Icon: RunsIcon },
 ];
 
 /** Statuses the repo row summarises, in the order they matter. */
@@ -57,6 +59,7 @@ export function Sidebar({
   onOpenSearch: () => void;
   onOpenSettings: () => void;
 }): JSX.Element {
+  const t = useT();
   const { repos, activeRoot, selectRepo, openRepo, verify } = useAppState();
   const counts = countByStatus(stones);
 
@@ -75,7 +78,7 @@ export function Sidebar({
           onClick={() => {
             onView("home");
           }}
-          aria-label="Home"
+          aria-label={t("nav.home")}
           aria-current={view === "home" ? "page" : undefined}
         >
           {collapsed ? <CairnMark className="brand-glyph" /> : <CairnLogo className="brand-logo" />}
@@ -84,15 +87,15 @@ export function Sidebar({
           type="button"
           className="rail-toggle"
           onClick={onToggleCollapsed}
-          aria-label={collapsed ? "Expand the sidebar" : "Collapse the sidebar"}
-          title={collapsed ? "Expand the sidebar" : "Collapse the sidebar"}
+          aria-label={t(collapsed ? "sidebar.expand" : "sidebar.collapse")}
+          title={t(collapsed ? "sidebar.expand" : "sidebar.collapse")}
         >
           <PanelIcon className="nav-icon" />
         </button>
       </div>
 
-      <nav className="sidebar-section" aria-label="Views">
-        {NAV.map(({ id, label, Icon }) => (
+      <nav className="sidebar-section" aria-label={t("sidebar.views")}>
+        {NAV.map(({ id, labelKey, Icon }) => (
           <button
             key={id}
             type="button"
@@ -101,19 +104,24 @@ export function Sidebar({
               onView(id);
             }}
             aria-current={view === id ? "page" : undefined}
-            title={collapsed ? label : undefined}
+            title={collapsed ? t(labelKey) : undefined}
           >
             <Icon className="nav-icon" />
-            <span className="nav-label">{label}</span>
+            <span className="nav-label">{t(labelKey)}</span>
             {badge[id] ? <span className="count-badge">{badge[id]}</span> : null}
             {id === "runs" && verify.running ? <span className="count-badge">···</span> : null}
           </button>
         ))}
 
         {/* Search sits under Cairn's views because it searches across all of them */}
-        <button type="button" className="nav-item" onClick={onOpenSearch} title={collapsed ? "Search" : undefined}>
+        <button
+          type="button"
+          className="nav-item"
+          onClick={onOpenSearch}
+          title={collapsed ? t("nav.search") : undefined}
+        >
           <SearchIcon className="nav-icon" />
-          <span className="nav-label">Search</span>
+          <span className="nav-label">{t("nav.search")}</span>
           <span className="nav-kbd">
             <kbd className="kbd">⌘K</kbd>
           </span>
@@ -121,7 +129,7 @@ export function Sidebar({
       </nav>
 
       <div className="sidebar-section" style={{ flex: 1, minHeight: 0 }}>
-        <div className="sidebar-label">Repositories</div>
+        <div className="sidebar-label">{t("sidebar.repositories")}</div>
         <div className="repo-list">
           {repos.map((root) => {
             const isActive = root === activeRoot;
@@ -154,7 +162,7 @@ export function Sidebar({
             }}
           >
             <PlusIcon className="nav-icon" />
-            <span className="repo-name">open repo…</span>
+            <span className="repo-name">{t("sidebar.openRepo")}</span>
           </button>
         </div>
       </div>
@@ -168,10 +176,10 @@ export function Sidebar({
             onView("runs");
             void verify.run();
           }}
-          title={collapsed ? "Verify" : undefined}
+          title={collapsed ? t("sidebar.verify") : undefined}
         >
           <PlayIcon />
-          <span className="nav-label">{verify.running ? "verifying…" : "Verify"}</span>
+          <span className="nav-label">{t(verify.running ? "sidebar.verifying" : "sidebar.verify")}</span>
         </button>
 
         <div className="foot-row">
@@ -179,17 +187,17 @@ export function Sidebar({
             type="button"
             className="nav-item settings-link"
             onClick={onOpenSettings}
-            title={collapsed ? "Settings" : undefined}
+            title={collapsed ? t("sidebar.settings") : undefined}
           >
             <SettingsIcon className="nav-icon" />
-            <span className="nav-label">Settings</span>
+            <span className="nav-label">{t("sidebar.settings")}</span>
           </button>
           <button
             type="button"
             className="theme-switch"
             onClick={onToggleTheme}
-            aria-label={theme === "dark" ? "Switch to the light theme" : "Switch to the dark theme"}
-            title={theme === "dark" ? "Switch to the light theme" : "Switch to the dark theme"}
+            aria-label={t(theme === "dark" ? "sidebar.toLight" : "sidebar.toDark")}
+            title={t(theme === "dark" ? "sidebar.toLight" : "sidebar.toDark")}
           >
             {theme === "dark" ? <MoonIcon className="nav-icon" /> : <SunIcon className="nav-icon" />}
           </button>

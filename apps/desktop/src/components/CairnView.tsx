@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import type { StoneRecord, StoneStatus } from "../lib/cairn.js";
 import { buildChains, countByStatus, surfacesOf } from "../lib/cairn.js";
 import { relativeTime, shortId } from "../lib/format.js";
+import { useLocale, useT, type TranslateFn } from "../lib/i18n.js";
 import { Empty, FilterChip, FilterGroup, StatusMark, SurfaceTag, ViewHeader } from "./bits.js";
 
 const STATUS_FILTERS: (StoneStatus | "all")[] = [
@@ -25,6 +26,8 @@ export function CairnView({
   pulsing: Set<string>;
   onOpen: (id: string) => void;
 }): JSX.Element {
+  const t = useT();
+  const locale = useLocale();
   const [status, setStatus] = useState<StoneStatus | "all">("all");
   const [surface, setSurface] = useState<string>("all");
 
@@ -43,8 +46,13 @@ export function CairnView({
   return (
     <>
       <ViewHeader
-        title="Cairn"
-        subtitle={`${stones.length} stone${stones.length === 1 ? "" : "s"} · ${counts.proven} proven · ${counts.broken} broken · ${counts.escalated} escalated`}
+        title={t("cairn.title")}
+        subtitle={t("cairn.subtitle", {
+          total: stones.length,
+          proven: counts.proven,
+          broken: counts.broken,
+          escalated: counts.escalated,
+        })}
         tools={
           <>
             <FilterGroup>
@@ -58,7 +66,8 @@ export function CairnView({
                   count={option === "all" ? stones.length : counts[option]}
                 >
                   {option === "all" ? null : <StatusMark status={option} />}
-                  {option}
+                  {/* a status is a value in .cairn/ — it reads the same in every language */}
+                  {option === "all" ? t("cairn.all") : option}
                 </FilterChip>
               ))}
             </FilterGroup>
@@ -70,7 +79,7 @@ export function CairnView({
                     setSurface("all");
                   }}
                 >
-                  every surface
+                  {t("cairn.everySurface")}
                 </FilterChip>
                 {surfaces.map((name) => (
                   <FilterChip
@@ -91,12 +100,8 @@ export function CairnView({
       <div className="view-body">
         {visible.length === 0 ? (
           <Empty
-            title={stones.length === 0 ? "The cairn is empty" : "No stone matches that filter"}
-            hint={
-              stones.length === 0
-                ? "Stones appear as cairn-mason extracts intents into .cairn/stones."
-                : undefined
-            }
+            title={t(stones.length === 0 ? "cairn.emptyAll" : "cairn.empty")}
+            {...(stones.length === 0 ? { hint: t("cairn.emptyAllHint") } : {})}
           />
         ) : (
           <div className="stone-list">
@@ -108,6 +113,8 @@ export function CairnView({
                   <StoneItem
                     key={head.stone.id}
                     record={head}
+                    t={t}
+                    locale={locale}
                     selected={head.stone.id === selectedId}
                     pulse={pulsing.has(head.stone.id)}
                     onOpen={onOpen}
@@ -118,16 +125,20 @@ export function CairnView({
                 <div className="lineage-group" key={head.stone.id}>
                   <StoneItem
                     record={head}
+                    t={t}
+                    locale={locale}
                     selected={head.stone.id === selectedId}
                     pulse={pulsing.has(head.stone.id)}
                     onOpen={onOpen}
                   />
                   <div className="lineage">
-                    <span className="lineage-label">amends</span>
+                    <span className="lineage-label">{t("cairn.amends")}</span>
                     {ancestors.map((record) => (
                       <StoneItem
                         key={record.stone.id}
                         record={record}
+                        t={t}
+                        locale={locale}
                         selected={record.stone.id === selectedId}
                         pulse={false}
                         onOpen={onOpen}
@@ -146,11 +157,15 @@ export function CairnView({
 
 function StoneItem({
   record,
+  t,
+  locale,
   selected,
   pulse,
   onOpen,
 }: {
   record: StoneRecord;
+  t: TranslateFn;
+  locale: string;
   selected: boolean;
   pulse: boolean;
   onOpen: (id: string) => void;
@@ -167,12 +182,15 @@ function StoneItem({
       <StatusMark status={stone.status} pulse={pulse} />
       <span className="stone-title">{stone.title}</span>
       <span className="stone-meta">
-        {/* the glyph never travels alone in a dense list */}
+        {/* the glyph never travels alone in a dense list; the status itself is a
+            value stored in .cairn/ and reads the same in every language */}
         <span className="stone-status">{stone.status}</span>
         <SurfaceTag surface={stone.surface} />
         <span className="id-mono">{shortId(stone.id)}</span>
         <span style={{ minWidth: 62, textAlign: "right" }}>
-          {stone.lastGreen ? `green ${relativeTime(stone.lastGreen.at)}` : relativeTime(stone.createdAt)}
+          {stone.lastGreen
+            ? t("cairn.green", { when: relativeTime(stone.lastGreen.at, locale) })
+            : relativeTime(stone.createdAt, locale)}
         </span>
       </span>
     </button>

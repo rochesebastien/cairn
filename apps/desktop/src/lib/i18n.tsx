@@ -12,7 +12,7 @@
  * Everything else — labels, hints, prose — is translated.
  */
 
-import { createContext, useCallback, useContext, useMemo, type ReactNode } from "react";
+import { createContext, Fragment, useCallback, useContext, useMemo, type ReactNode } from "react";
 
 export type Lang = "en" | "fr";
 
@@ -34,13 +34,16 @@ export const DICT: Record<string, Entry> = {
   "nav.home": { en: "Home", fr: "Accueil" },
   "sidebar.repositories": { en: "Repositories", fr: "Dépôts" },
   "sidebar.openRepo": { en: "open repo…", fr: "ouvrir un dépôt…" },
-  "sidebar.verify": { en: "Verify", fr: "Vérifier" },
-  "sidebar.verifying": { en: "verifying…", fr: "vérification…" },
+  // `verify` and `amend` are the CLI's own verbs: the button runs `cairn verify`.
+  // Translating them would break the link a French reader needs to the command line.
+  "sidebar.verify": { en: "Verify", fr: "Verify" },
+  "sidebar.verifying": { en: "verifying…", fr: "verify en cours…" },
   "sidebar.settings": { en: "Settings", fr: "Paramètres" },
   "sidebar.collapse": { en: "Collapse the sidebar", fr: "Replier la barre latérale" },
   "sidebar.expand": { en: "Expand the sidebar", fr: "Déplier la barre latérale" },
   "sidebar.toLight": { en: "Switch to the light theme", fr: "Passer au thème clair" },
   "sidebar.toDark": { en: "Switch to the dark theme", fr: "Passer au thème sombre" },
+  "sidebar.views": { en: "Views", fr: "Vues" },
 
   /* ---------------------------------------------------------------- home */
   "home.title": { en: "Proofs replayed", fr: "Proofs rejouées" },
@@ -67,6 +70,12 @@ export const DICT: Record<string, Entry> = {
   "heat.passed": { en: "passed", fr: "au vert" },
   "heat.failed": { en: "failed", fr: "au rouge" },
   "heat.skipped": { en: "skipped", fr: "ignorées" },
+  "home.heatLabel": { en: "Proof runs in {year}", fr: "Exécutions de proofs en {year}" },
+  "home.cellEmpty": { en: "{day}: no proof replayed", fr: "{day} : aucune proof rejouée" },
+  "home.cellRuns": {
+    en: "{day}: {count} proofs, {percent} passed",
+    fr: "{day} : {count} proofs, {percent} au vert",
+  },
 
   /* -------------------------------------------------------------- search */
   "search.placeholder": {
@@ -87,6 +96,7 @@ export const DICT: Record<string, Entry> = {
   "search.hint.cairn": { en: "every stone", fr: "toutes les stones" },
   "search.hint.escalations": { en: "out of attempts", fr: "à bout de tentatives" },
   "search.hint.runs": { en: "verify output", fr: "la sortie de verify" },
+  "search.dialogLabel": { en: "Search the cairn", fr: "Chercher dans le cairn" },
 
   /* ------------------------------------------------------------ settings */
   "settings.title": { en: "Settings", fr: "Paramètres" },
@@ -94,9 +104,10 @@ export const DICT: Record<string, Entry> = {
   "settings.appearance": { en: "Appearance", fr: "Apparence" },
   "settings.language": { en: "Language", fr: "Langue" },
   "settings.repositories": { en: "Repositories", fr: "Dépôts" },
-  "settings.verify": { en: "Verify", fr: "Vérification" },
+  "settings.verify": { en: "Verify", fr: "Verify" },
   "settings.about": { en: "About", fr: "À propos" },
   "settings.close": { en: "Close settings", fr: "Fermer les paramètres" },
+  "settings.sections": { en: "Settings sections", fr: "Sections des paramètres" },
 
   "settings.reduceMotion": { en: "Reduce motion", fr: "Réduire les animations" },
   "settings.reduceMotionHint": {
@@ -190,6 +201,24 @@ export const DICT: Record<string, Entry> = {
   "review.kbdOpen": { en: "open the stone", fr: "ouvrir la stone" },
   "review.kbdClose": { en: "close", fr: "fermer" },
   "review.empty": { en: "No draft to read", fr: "Aucun draft à relire" },
+  "review.emptyHint": {
+    en: "cairn-mason writes drafts into .cairn/stones as it extracts intents. They appear here.",
+    fr: "cairn-mason écrit les drafts dans .cairn/stones à mesure qu'il extrait les intentions. Ils apparaissent ici.",
+  },
+  "review.subtitleEmpty": {
+    en: "nothing waiting — the mason has raised no new stones",
+    fr: "rien en attente — le mason n'a levé aucune nouvelle stone",
+  },
+  "review.sessionNote": {
+    en: "{count} decisions recorded in this session only. Writing them back to the cairn needs the MCP wiring ({createDraft} / {amendStone}) — the stones below are still drafts on disk.",
+    fr: "{count} décisions enregistrées pour cette session seulement. Les réécrire dans le cairn demande le câblage MCP ({createDraft} / {amendStone}) — les stones ci-dessous restent des drafts sur le disque.",
+  },
+  "review.noAcceptance": { en: "No acceptance criteria yet.", fr: "Pas encore de critères d'acceptation." },
+  "review.decisionApproved": { en: "approved", fr: "approuvée" },
+  "review.decisionRephrase": { en: "sent back for rephrasing", fr: "renvoyée pour reformulation" },
+  "review.decisionRejected": { en: "rejected", fr: "rejetée" },
+  "review.decisionNote": { en: "{decision} — in this session", fr: "{decision} — sur cette session" },
+  "review.undo": { en: "undo", fr: "annuler" },
 
   /* --------------------------------------------------------------- cairn */
   "cairn.title": { en: "Cairn", fr: "Cairn" },
@@ -199,8 +228,15 @@ export const DICT: Record<string, Entry> = {
   },
   "cairn.all": { en: "all", fr: "toutes" },
   "cairn.everySurface": { en: "every surface", fr: "toutes surfaces" },
-  "cairn.amends": { en: "AMENDS", fr: "AMENDE" },
+  // `amend` is vocabulary: it names the operation written into .cairn/, so it
+  // does not become "amende" (which reads as a fine) in French.
+  "cairn.amends": { en: "AMENDS", fr: "AMENDS" },
   "cairn.empty": { en: "No stone here", fr: "Aucune stone ici" },
+  "cairn.emptyAll": { en: "The cairn is empty", fr: "Le cairn est vide" },
+  "cairn.emptyAllHint": {
+    en: "Stones appear as cairn-mason extracts intents into .cairn/stones.",
+    fr: "Les stones apparaissent à mesure que cairn-mason extrait les intentions dans .cairn/stones.",
+  },
   "cairn.green": { en: "green {when}", fr: "vert {when}" },
 
   /* ---------------------------------------------------------- escalations */
@@ -214,16 +250,44 @@ export const DICT: Record<string, Entry> = {
   "escalations.trace": { en: "TRACE", fr: "TRACE" },
   "escalations.when": { en: "WHEN", fr: "QUAND" },
   "escalations.sendBack": { en: "Send back to coder", fr: "Renvoyer au coder" },
-  "escalations.amend": { en: "Amend", fr: "Amender" },
+  "escalations.amend": { en: "Amend", fr: "Amend" },
   "escalations.retire": { en: "Retire", fr: "Retirer" },
   "escalations.attempts": { en: "{count} attempts spent", fr: "{count} tentatives dépensées" },
   "escalations.empty": { en: "Nothing escalated", fr: "Aucune escalade" },
+  "escalations.emptyHint": {
+    en: "A stone lands here when the coder/warden loop burns its three attempts. Its only exits are amend and retire.",
+    fr: "Une stone arrive ici quand la boucle coder/warden a brûlé ses trois tentatives. Ses seules sorties sont amend et retire.",
+  },
+  "escalations.subtitleEmpty": {
+    en: "no stone is waiting on a human",
+    fr: "aucune stone n'attend un humain",
+  },
+  "escalations.noReport": {
+    en: "No report was written for this stone. Phase 1 records the attempt count in provenance and nothing else — open the stone to read its last failure from the run log.",
+    fr: "Aucun rapport n'a été écrit pour cette stone. La phase 1 note le nombre de tentatives dans la provenance et rien d'autre — ouvrez la stone pour lire son dernier échec dans le journal d'exécution.",
+  },
+  "escalations.notWired": {
+    en: "“{action}” is not wired yet. It will call {call}.",
+    fr: "« {action} » n'est pas encore câblé. Cela appellera {call}.",
+  },
+  "escalations.wiringSendBack": {
+    en: "record_run + a fresh coder attempt (the budget resets to 3)",
+    fr: "record_run + une nouvelle tentative du coder (le budget repart à 3)",
+  },
+  "escalations.wiringAmend": {
+    en: "amend_stone — the old stone retires, the new one starts as a draft",
+    fr: "amend_stone — l'ancienne stone passe retired, la nouvelle démarre en draft",
+  },
+  "escalations.wiringRetire": {
+    en: "retire_stone — the stone leaves the suite and stops being verified",
+    fr: "retire_stone — la stone quitte la suite et n'est plus vérifiée",
+  },
 
   /* ---------------------------------------------------------------- runs */
   "runs.title": { en: "Runs", fr: "Exécutions" },
   "runs.follow": { en: "follow", fr: "suivre" },
   "runs.clear": { en: "clear", fr: "effacer" },
-  "runs.verify": { en: "Verify", fr: "Vérifier" },
+  "runs.verify": { en: "Verify", fr: "Verify" },
   "runs.noRun": { en: "No run yet", fr: "Aucune exécution" },
   "runs.noRunHint": {
     en: "Verify replays the proofs with Playwright. No model is involved: the proof is an artifact.",
@@ -231,6 +295,8 @@ export const DICT: Record<string, Entry> = {
   },
   "runs.exit": { en: "exit {code}", fr: "code {code}" },
   "runs.runner": { en: "runner", fr: "exécuteur" },
+  "runs.starting": { en: "starting the runner…", fr: "démarrage de l'exécuteur…" },
+  "runs.noBaseURL": { en: "no baseURL in config", fr: "pas de baseURL dans la config" },
 
   /* -------------------------------------------------------------- drawer */
   "drawer.intent": { en: "INTENT", fr: "INTENTION" },
@@ -244,7 +310,37 @@ export const DICT: Record<string, Entry> = {
   "drawer.raisedGreen": { en: "raised {raised} · last green {green}", fr: "levée {raised} · dernier vert {green}" },
   "drawer.raised": { en: "raised {raised}", fr: "levée {raised}" },
   "drawer.attemptsTokens": { en: "{attempts} attempt(s) · {tokens} tokens", fr: "{attempts} tentative(s) · {tokens} tokens" },
+  "drawer.attempts": { en: "{attempts} attempt(s)", fr: "{attempts} tentative(s)" },
+  "drawer.noAttempts": { en: "attempts not recorded", fr: "tentatives non enregistrées" },
   "drawer.noProof": { en: "No proof yet", fr: "Pas encore de proof" },
+  "drawer.noProofHint": {
+    en: "cairn-warden writes it once the stone is approved.",
+    fr: "cairn-warden l'écrit une fois la stone approuvée.",
+  },
+  "drawer.closeStone": { en: "Close the stone", fr: "Fermer la stone" },
+  "drawer.neverGreen": { en: "never green", fr: "jamais au vert" },
+  "drawer.noAcceptance": { en: "No criteria on this stone.", fr: "Aucun critère sur cette stone." },
+  "drawer.neverHashed": { en: "never hashed", fr: "jamais hachée" },
+  "drawer.reading": { en: "reading…", fr: "lecture…" },
+  "drawer.cannotReadProof": {
+    en: "Cannot read the proof: {message}",
+    fr: "Lecture de la proof impossible : {message}",
+  },
+  "drawer.noRuns": { en: "No run recorded for this stone.", fr: "Aucune exécution enregistrée pour cette stone." },
+  "drawer.pass": { en: "pass", fr: "réussie" },
+  "drawer.fail": { en: "fail", fr: "échouée" },
+  "drawer.fromLastGreen": { en: "from lastGreen", fr: "d'après lastGreen" },
+  "drawer.shotAlt": { en: "Playwright screenshot of the failure", fr: "Capture Playwright de l'échec" },
+  "drawer.openTrace": { en: "open trace", fr: "ouvrir la trace" },
+  "drawer.openTraceTitle": {
+    en: "open the trace with the system handler",
+    fr: "ouvrir la trace avec l'application système",
+  },
+  "drawer.desktopOnly": { en: "available in the desktop build", fr: "disponible dans la version desktop" },
+  "drawer.redNoReport": {
+    en: "Red on {when} — no warden report was stored. The run log holds the Playwright output.",
+    fr: "Rouge le {when} — aucun rapport du warden n'a été conservé. Le journal d'exécution garde la sortie Playwright.",
+  },
 
   /* --------------------------------------------------------------- shell */
   "shell.openRepoTitle": { en: "Open a repository", fr: "Ouvrir un dépôt" },
@@ -293,6 +389,32 @@ export function useT(): TranslateFn {
         }
       }
       return text;
+    },
+    [lang],
+  );
+}
+
+const PLACEHOLDER = /(\{[A-Za-z]\w*\})/g;
+
+export type TranslateNodeFn = (key: keyof typeof DICT | string, vars: Record<string, ReactNode>) => ReactNode;
+
+/**
+ * Same dictionary, but a placeholder may be a node.
+ *
+ * `tn("home.activeDays", { count: <strong>{n}</strong> })` — the sentence keeps
+ * its markup without being cut into fragments that no translator could reorder.
+ */
+export function useTNode(): TranslateNodeFn {
+  const lang = useLang();
+  return useCallback(
+    (key: string, vars: Record<string, ReactNode>) => {
+      const entry = DICT[key];
+      const text = entry ? entry[lang] : key;
+      return text.split(PLACEHOLDER).map((part, index) => {
+        const name = part.startsWith("{") && part.endsWith("}") ? part.slice(1, -1) : null;
+        if (name === null || !(name in vars)) return part;
+        return <Fragment key={`${name}-${index}`}>{vars[name]}</Fragment>;
+      });
     },
     [lang],
   );

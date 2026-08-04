@@ -11,16 +11,18 @@ import { useAllCairns, useAppState } from "../lib/app-state.js";
 import { repoName } from "../lib/cairn.js";
 import type { Settings } from "../lib/settings.js";
 import type { Theme } from "../lib/theme.js";
+import { LANGS, useT } from "../lib/i18n.js";
 import { CloseIcon, FolderIcon, MoonIcon, PlusIcon, SettingsIcon, SunIcon } from "./icons.js";
 
-type Section = "general" | "appearance" | "repositories" | "verify" | "about";
+type Section = "general" | "appearance" | "language" | "repositories" | "verify" | "about";
 
-const SECTIONS: { id: Section; label: string }[] = [
-  { id: "general", label: "General" },
-  { id: "appearance", label: "Appearance" },
-  { id: "repositories", label: "Repositories" },
-  { id: "verify", label: "Verify" },
-  { id: "about", label: "About" },
+const SECTIONS: { id: Section; labelKey: string }[] = [
+  { id: "general", labelKey: "settings.general" },
+  { id: "appearance", labelKey: "settings.appearance" },
+  { id: "language", labelKey: "settings.language" },
+  { id: "repositories", labelKey: "settings.repositories" },
+  { id: "verify", labelKey: "settings.verify" },
+  { id: "about", labelKey: "settings.about" },
 ];
 
 export function SettingsDialog({
@@ -36,6 +38,7 @@ export function SettingsDialog({
   settings: Settings;
   onSet: <K extends keyof Settings>(key: K, value: Settings[K]) => void;
 }): JSX.Element {
+  const t = useT();
   const [section, setSection] = useState<Section>("general");
   const { repos, activeRoot, selectRepo, openRepo, sourceKind, sourceLabel } = useAppState();
   const results = useAllCairns(repos);
@@ -60,11 +63,11 @@ export function SettingsDialog({
         if (event.target === event.currentTarget) onClose();
       }}
     >
-      <div className="dialog" role="dialog" aria-modal="true" aria-label="Settings">
-        <nav className="dialog-rail" aria-label="Settings sections">
+      <div className="dialog" role="dialog" aria-modal="true" aria-label={t("settings.title")}>
+        <nav className="dialog-rail" aria-label={t("settings.sections")}>
           <div className="dialog-rail-head">
             <SettingsIcon className="nav-icon" />
-            <span>Settings</span>
+            <span>{t("settings.title")}</span>
           </div>
           {SECTIONS.map((entry) => (
             <button
@@ -76,15 +79,15 @@ export function SettingsDialog({
               }}
               aria-current={section === entry.id ? "page" : undefined}
             >
-              {entry.label}
+              {t(entry.labelKey)}
             </button>
           ))}
         </nav>
 
         <div className="dialog-main">
           <header className="dialog-head">
-            <h2 className="dialog-title">{SECTIONS.find((s) => s.id === section)?.label}</h2>
-            <button type="button" className="icon-btn" onClick={onClose} aria-label="Close settings">
+            <h2 className="dialog-title">{t(SECTIONS.find((s) => s.id === section)?.labelKey ?? "settings.title")}</h2>
+            <button type="button" className="icon-btn" onClick={onClose} aria-label={t("settings.close")}>
               <CloseIcon />
             </button>
           </header>
@@ -92,28 +95,25 @@ export function SettingsDialog({
           <div className="dialog-body">
             {section === "general" ? (
               <>
-                <Row
-                  label="Reduce motion"
-                  hint="Drop the shell and drawer animations. The OS preference already does this; here you can ask for it anyway."
-                >
+                <Row label={t("settings.reduceMotion")} hint={t("settings.reduceMotionHint")}>
                   <Switch
                     on={settings.reduceMotion}
                     onChange={(value) => {
                       onSet("reduceMotion", value);
                     }}
-                    label="Reduce motion"
+                    label={t("settings.reduceMotion")}
                   />
                 </Row>
-                <Row label="Collapsed sidebar" hint="Start on the icon rail. You can always toggle it from the sidebar head.">
+                <Row label={t("settings.collapsedSidebar")} hint={t("settings.collapsedSidebarHint")}>
                   <Switch
                     on={settings.sidebarCollapsed}
                     onChange={(value) => {
                       onSet("sidebarCollapsed", value);
                     }}
-                    label="Collapsed sidebar"
+                    label={t("settings.collapsedSidebar")}
                   />
                 </Row>
-                <Row label="Search" hint="Open the palette from anywhere.">
+                <Row label={t("settings.searchRow")} hint={t("settings.searchRowHint")}>
                   <span className="row-value">
                     <kbd className="kbd">⌘</kbd>
                     <kbd className="kbd">K</kbd>
@@ -124,7 +124,7 @@ export function SettingsDialog({
 
             {section === "appearance" ? (
               <>
-                <Row label="Theme" hint="Dark is the default. The choice persists under cairn.theme.">
+                <Row label={t("settings.theme")} hint={t("settings.themeHint")}>
                   <div className="segmented">
                     <button
                       type="button"
@@ -134,7 +134,7 @@ export function SettingsDialog({
                       }}
                     >
                       <SunIcon className="nav-icon" />
-                      Light
+                      {t("settings.light")}
                     </button>
                     <button
                       type="button"
@@ -144,14 +144,12 @@ export function SettingsDialog({
                       }}
                     >
                       <MoonIcon className="nav-icon" />
-                      Dark
+                      {t("settings.dark")}
                     </button>
                   </div>
                 </Row>
-                <Row
-                  label="Status colour"
-                  hint="The only hues in the app. They mark a stone's verdict at glyph scale and never fill a surface."
-                >
+                <Row label={t("settings.statusColour")} hint={t("settings.statusColourHint")}>
+                  {/* the three statuses are values in .cairn/ — never translated */}
                   <span className="row-value swatches">
                     <span className="swatch" style={{ background: "var(--status-proven)" }} /> proven
                     <span className="swatch" style={{ background: "var(--status-broken)" }} /> broken
@@ -161,11 +159,29 @@ export function SettingsDialog({
               </>
             ) : null}
 
+            {section === "language" ? (
+              <Row label={t("settings.languageRow")} hint={t("settings.languageHint")}>
+                <div className="segmented">
+                  {LANGS.map((lang) => (
+                    <button
+                      key={lang.id}
+                      type="button"
+                      className={settings.language === lang.id ? "active" : ""}
+                      onClick={() => {
+                        onSet("language", lang.id);
+                      }}
+                      aria-pressed={settings.language === lang.id}
+                    >
+                      {lang.label}
+                    </button>
+                  ))}
+                </div>
+              </Row>
+            ) : null}
+
             {section === "repositories" ? (
               <>
-                <p className="dialog-note">
-                  Cairn has no database — a repository is the state. Opening one only remembers its path.
-                </p>
+                <p className="dialog-note">{t("settings.reposNote")}</p>
                 <div className="repo-table">
                   {repos.map((root, i) => {
                     const snapshot = results[i]?.data;
@@ -181,8 +197,11 @@ export function SettingsDialog({
                         <FolderIcon className="nav-icon" />
                         <span className="repo-row-name">{repoName(root)}</span>
                         <span className="repo-row-count">
-                          {snapshot ? `${snapshot.stones.length} stones` : "reading…"}
+                          {snapshot
+                            ? t("settings.stonesCount", { count: snapshot.stones.length })
+                            : t("settings.readingRepo")}
                         </span>
+                        {/* a filesystem path: verbatim, in mono */}
                         <span className="repo-row-path mono">{root}</span>
                       </button>
                     );
@@ -196,27 +215,25 @@ export function SettingsDialog({
                   }}
                 >
                   <PlusIcon className="nav-icon" />
-                  Open repository…
+                  {t("settings.openRepository")}
                 </button>
               </>
             ) : null}
 
             {section === "verify" ? (
               <>
-                <p className="dialog-note">
-                  These come from <code>cairn.config.ts</code> in the open repository. They are read here, never
-                  written: the config is the project's, not the app's.
-                </p>
-                <Row label="Base URL" hint="Where the proofs drive the app.">
+                {/* the file name stays a file name in every language, and keeps the mono voice */}
+                <p className="dialog-note">{codeAround(t("settings.verifyNote"), "cairn.config.ts")}</p>
+                <Row label={t("settings.baseURL")} hint={t("settings.baseURLHint")}>
                   <span className="row-value mono">{config?.baseURL ?? "—"}</span>
                 </Row>
-                <Row label="Start command" hint="How the app under test is launched.">
+                <Row label={t("settings.startCommand")} hint={t("settings.startCommandHint")}>
                   <span className="row-value mono">{config?.start ?? "—"}</span>
                 </Row>
-                <Row label="Setup hook" hint="Seed run before a verify, so a proof starts from a known state.">
-                  <span className="row-value mono">{config?.setup ?? "none"}</span>
+                <Row label={t("settings.setupHook")} hint={t("settings.setupHookHint")}>
+                  <span className="row-value mono">{config?.setup ?? t("settings.none")}</span>
                 </Row>
-                <Row label="Retries" hint="Playwright retries per proof. Two is the ceiling the CI policy allows.">
+                <Row label={t("settings.retries")} hint={t("settings.retriesHint")}>
                   <span className="row-value mono">{config?.retries ?? 0}</span>
                 </Row>
               </>
@@ -224,18 +241,16 @@ export function SettingsDialog({
 
             {section === "about" ? (
               <>
-                <Row label="Reading from" hint="The demo cairn runs in a plain browser; the desktop build reads real folders.">
+                <Row label={t("settings.readingFrom")} hint={t("settings.readingFromHint")}>
                   <span className="row-value">
                     {sourceLabel} <span className="muted">({sourceKind})</span>
                   </span>
                 </Row>
-                <Row label="Proof format" hint="v1 drives a web app in a browser. A CLI or a native app has nothing to prove it with yet.">
+                <Row label={t("settings.proofFormat")} hint={t("settings.proofFormatHint")}>
+                  {/* the tool's name, not a word */}
                   <span className="row-value">Playwright</span>
                 </Row>
-                <p className="dialog-note">
-                  A stone carries the user's own words and one deterministic proof that the promise is still kept. CI
-                  replays that proof with no model in the loop.
-                </p>
+                <p className="dialog-note">{t("settings.aboutNote")}</p>
               </>
             ) : null}
           </div>
@@ -243,6 +258,11 @@ export function SettingsDialog({
       </div>
     </div>
   );
+}
+
+/** Wraps every occurrence of a file name in the sentence with the mono voice. */
+function codeAround(text: string, token: string): React.ReactNode[] {
+  return text.split(token).flatMap((part, index) => (index === 0 ? [part] : [<code key={index}>{token}</code>, part]));
 }
 
 function Row({ label, hint, children }: { label: string; hint: string; children: React.ReactNode }): JSX.Element {

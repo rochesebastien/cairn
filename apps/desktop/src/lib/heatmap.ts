@@ -28,8 +28,8 @@ export interface HeatWeek {
 
 export interface Heatmap {
   weeks: HeatWeek[];
-  /** Month labels aligned to the week column they start in. */
-  months: { label: string; column: number }[];
+  /** Month index (0…11) aligned to the week column it starts in; named by the view, in the UI locale. */
+  months: { month: number; column: number }[];
   totalRuns: number;
   totalGreen: number;
   totalRed: number;
@@ -40,8 +40,6 @@ export interface Heatmap {
   from: string;
   to: string;
 }
-
-const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 /** Local `YYYY-MM-DD` — never `toISOString()`, which would shift the day in UTC-negative zones. */
 export function dayKey(date: Date): string {
@@ -93,7 +91,7 @@ export function buildHeatmap(runs: RunRecord[], year: number, today: Date): Heat
   const todayKey = dayKey(today);
 
   const out: HeatWeek[] = [];
-  const months: { label: string; column: number }[] = [];
+  const months: { month: number; column: number }[] = [];
   let totalRuns = 0;
   let totalGreen = 0;
   let totalRed = 0;
@@ -141,7 +139,7 @@ export function buildHeatmap(runs: RunRecord[], year: number, today: Date): Heat
       if (d === 0 && date.getFullYear() === year) {
         const month = date.getMonth();
         if (month !== lastMonth) {
-          months.push({ label: MONTHS[month] ?? "", column: w });
+          months.push({ month, column: w });
           lastMonth = month;
         }
       }
@@ -202,13 +200,28 @@ export function busiestDay(map: Heatmap): number {
   return max;
 }
 
-/** "12 March 2026" — the hover card's heading. */
-export function formatDay(key: string): string {
+/** "12 March 2026" / "12 mars 2026" — the hover card's heading, in the UI locale. */
+export function formatDay(key: string, locale = "en-GB"): string {
   const [year, month, day] = key.split("-").map((part) => Number(part));
   const date = new Date(year ?? 1970, (month ?? 1) - 1, day ?? 1);
-  return date.toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" });
+  return date.toLocaleDateString(locale, { day: "numeric", month: "long", year: "numeric" });
 }
 
-export function percent(value: number): string {
-  return `${Math.round(value * 100)}%`;
+/** "Jan" / "janv." — a column heading, so the short form. */
+export function monthLabel(month: number, locale = "en-GB"): string {
+  return new Date(2000, month, 1).toLocaleDateString(locale, { month: "short" });
+}
+
+/**
+ * The three weekday captions of the grid, in the UI locale. The grid runs
+ * Sun→Sat, and only rows 2, 4 and 6 are labelled — 2000-01-02 was a Sunday.
+ */
+export function weekdayLabels(locale = "en-GB"): string[] {
+  return [1, 3, 5].map((offset) =>
+    new Date(2000, 0, 2 + offset).toLocaleDateString(locale, { weekday: "short" }),
+  );
+}
+
+export function percent(value: number, locale = "en-GB"): string {
+  return new Intl.NumberFormat(locale, { style: "percent", maximumFractionDigits: 0 }).format(value);
 }
