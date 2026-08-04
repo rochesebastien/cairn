@@ -1,0 +1,195 @@
+name: Release
+
+# Publie une release GitHub pour l'app desktop (`apps/desktop`). Trois
+# déclencheurs :
+#   - Automatique : à chaque push sur `main`, si la version de
+#     `apps/desktop/src-tauri/tauri.conf.json` n'a pas encore de release
+#     (= version bumpée), le tag `v<version>` est créé et la release publiée.
+#     Sinon, on ne fait rien.
+#   - Tag `v*` poussé manuellement (ex: `v0.1.0`) : release toujours.
+#   - Lancement manuel (Actions → Release → Run workflow) : le tag est dérivé de
+#     la version dans `tauri.conf.json` et tauri-action crée le tag.
+#
+# La release contient quatre manières de récupérer Cairn :
+#   - Installateur Windows   : `Cairn_<version>_x64-setup.exe` (NSIS)
+#   - Exécutable portable    : `Cairn_<version>_x64_portable.exe` (sans installateur)
+#   - Image disque macOS     : `Cairn_<version>_universal.dmg` (Intel + Apple Silicon)
+#   - Code source            : « Source code (zip / tar.gz) », ajouté par GitHub.
+#
+# Les deux jobs (Windows et macOS) publient dans la même release.
+#
+# Pas d'updater : Cairn n'embarque pas `tauri-plugin-updater`, donc aucun
+# artefact signé (`latest.json`, `*.sig`) n'est produit et **aucun secret
+# de signature n'est nécessaire**. Le seul jeton utilisé est le `GITHUB_TOKEN`
+# fourni automatiquement par GitHub Actions.
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  # Décide s'il faut publier. Sur un push vers `main`, on ne release que si la
+  # version de `tauri.conf.json` n'a pas encore de release (= la version vient
+  # d'être bumpée). Sur un tag `v*` ou un lancement manuel, on release toujours.
+  check:
+    name: Faut-il publier ?
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.meta.outputs.tag }}
+      should_release: ${{ steps.meta.outputs.should_release }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Determine release tag
+        id: meta
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ "${{ github.ref_type }}" = "tag" ]; then
+            tag="${{ github.ref_name }}"
+          else
+            version=$(node -p "require('./apps/desktop/src-tauri/tauri.conf.json').version")
+            tag="v${version}"
+          fi
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "Release tag: $tag"
+
+          if [ "${{ github.event_name }}" != "push" ] || [ "${{ github.ref_type }}" = "tag" ]; then
+            echo "should_release=true" >> "$GITHUB_OUTPUT"
+          elif gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "should_release=false" >> "$GITHUB_OUTPUT"
+            echo "Release $tag existe déjà — rien à publier."
+          else
+            echo "should_release=true" >> "$GITHUB_OUTPUT"
+            echo "Nouvelle version détectée — publication de $tag."
+          fi
+
+  release:
+    name: Build & publish (${{ matrix.platform }})
+    needs: check
+    if: needs.check.outputs.should_release == 'true'
+    strategy:
+      fail-fast: false
+      # Ajouter une plateforme = ajouter une entrée ici (ex. `ubuntu-22.04`
+      # avec `--bundles deb,appimage` et les libs système Tauri en `apt-get`).
+      # Linux n'est volontairement pas publié pour l'instant.
+      matrix:
+        include:
+          - platform: windows-latest
+            # On ne produit que l'installateur NSIS (.exe). Le binaire portable
+            # est ajouté à l'étape suivante, et GitHub joint le code source.
+            args: --bundles nsis
+          - platform: macos-latest
+            # Binaire universel (Intel + Apple Silicon) ; le bundle `app` est
+            # l'étape intermédiaire dont le `.dmg` est construit.
+            args: --target universal-apple-darwin --bundles app,dmg
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Pas d'input `version:` : pnpm/action-setup lit le champ
+      # `packageManager` du package.json racine, donc le pnpm utilisé ici est
+      # exactement celui épinglé dans le dépôt (comme dans ci.yml).
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+
+      # Après pnpm : setup-node demande à pnpm où vit son store avant de le
+      # mettre en cache.
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: pnpm
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          # Cibles requises pour le binaire macOS universel ; sans effet ailleurs.
+          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+
+      - name: Cache Rust build
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: apps/desktop/src-tauri -> target
+
+      # Install à la racine du monorepo : le lockfile pnpm y vit, et les
+      # dépendances de `apps/desktop` sont liées depuis le store partagé.
+      - name: Install workspace dependencies
+        run: pnpm install --frozen-lockfile
+
+      # `apps/desktop` importe `@cairn/core` par ses points d'entrée publiés
+      # (`dist/index.js`, `dist/*.d.ts`), et `dist/` n'est pas versionné. Sans
+      # cette étape, le `tsc --noEmit && vite build` déclenché par
+      # `beforeBuildCommand` échoue à résoudre `@cairn/core/schema` &co.
+      - name: Build workspace dependencies (@cairn/core)
+        run: pnpm --filter @cairn/core build
+
+      - name: Build app & publish release
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          # L'app Tauri n'est pas à la racine du dépôt : tauri-action doit
+          # travailler depuis `apps/desktop` (c'est là que vivent le
+          # package.json du front et `src-tauri/`).
+          projectPath: apps/desktop
+          # Force le passage par pnpm : le lockfile est à la racine du
+          # monorepo, la détection automatique du gestionnaire de paquets
+          # depuis `apps/desktop` n'est donc pas fiable. `pnpm tauri` appelle
+          # le script `tauri` de apps/desktop/package.json, et le
+          # `beforeBuildCommand` (`pnpm build`) construit le front via le
+          # workspace.
+          tauriScript: pnpm tauri
+          tagName: ${{ needs.check.outputs.tag }}
+          releaseName: Cairn ${{ needs.check.outputs.tag }}
+          releaseDraft: false
+          prerelease: false
+          args: ${{ matrix.args }}
+          releaseBody: |
+            ## Télécharger Cairn
+
+            | Option | Fichier | Pour qui |
+            | --- | --- | --- |
+            | **Installateur Windows** | `Cairn_*_x64-setup.exe` | Installation classique (raccourcis, désinstalleur). |
+            | **Portable Windows** | `Cairn_*_x64_portable.exe` | Aucun installateur : lancez le `.exe` directement, où vous voulez. |
+            | **macOS** | `Cairn_*_universal.dmg` | Intel et Apple Silicon. Ouvrez le `.dmg` et glissez Cairn où vous voulez. |
+            | **Code source** | *Source code* (zip / tar.gz) ci-dessous | Compiler vous-même. |
+
+            > **macOS** : l'application n'est pas notariée. Au premier lancement,
+            > faites un clic droit → **Ouvrir** (ou `xattr -cr /Applications/Cairn.app`).
+
+            > **Windows** : l'exécutable n'est pas signé — SmartScreen affichera
+            > « éditeur inconnu » au premier lancement.
+
+            Cairn n'a pas de mise à jour automatique : pour passer à une
+            nouvelle version, retéléchargez-la depuis cette page.
+
+      # Tauri ne produit pas de « vrai » mode portable : on joint simplement
+      # l'exécutable brut construit par cargo (nom du binaire = nom du package
+      # Rust, `cairn-desktop`).
+      - name: Stage portable executable
+        if: matrix.platform == 'windows-latest'
+        shell: pwsh
+        run: |
+          $version = '${{ needs.check.outputs.tag }}' -replace '^v', ''
+          $dest = "Cairn_${version}_x64_portable.exe"
+          Copy-Item 'apps/desktop/src-tauri/target/release/cairn-desktop.exe' $dest
+          "PORTABLE_EXE=$dest" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+
+      - name: Attach portable executable to the release
+        if: matrix.platform == 'windows-latest'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.check.outputs.tag }}
+          files: ${{ env.PORTABLE_EXE }}
+          fail_on_unmatched_files: true
