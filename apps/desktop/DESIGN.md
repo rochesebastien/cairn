@@ -143,7 +143,7 @@ Loose, but consistent.
 
 The logo is `assets/cairn-logo.svg` — **the stone glyph and the "Cairn" wordmark together, as one lockup**. Use the complete lockup wherever the product is named: the sidebar head, the site nav, the site footer. Do not rebuild the wordmark in CSS text next to the glyph, and do not ship the glyph alone as if it were the logo.
 
-`assets/cairn-icon.svg` — the glyph alone — is reserved for square contexts where a lockup cannot fit: app icons, favicons, avatars.
+`assets/cairn-icon.svg` — the glyph alone — is reserved for square contexts where a lockup cannot fit: app icons, favicons, avatars, and the home screen, where it is deliberately huge (`min(42vh, 460px)`) and the wordmark would only crowd it.
 
 Both files are solid black artwork on transparency. On the dark theme they render white via `filter: invert(1)`; on the light theme they render as-is. That is the only filter allowed on brand assets — never recolour them, never add a drop shadow.
 
@@ -165,7 +165,9 @@ Full-window app shell — a fixed sidebar plus a swappable main view:
         + stone detail drawer (right overlay)
 ```
 
-**Home is what the app opens on**, with no nav item selected: the glyph alone (the wordmark would only repeat the repository name underneath), the counts in one line, and a full-width year of proof runs. Clicking the sidebar lockup returns there. It answers one question — *has this cairn been kept up?* — and answers it as a shape you read in a second, not a table.
+**Home is what the app opens on**, with no nav item selected: the glyph alone at close to half the window height, floating in the space above a full-width year of proof runs. Nothing else — no title, no counts line; the sidebar already names the product and the heatmap's own caption says what is being counted. Clicking the sidebar lockup returns there. It answers one question — *has this cairn been kept up?* — and answers it as a shape you read in a second, not a table.
+
+By default it reads **every open repository**, over the **current calendar year**. Two dropdowns at the top right of the card narrow it: project (all, or one) and year (only years that actually hold runs).
 
 The **heatmap** is the one large coloured surface in the product, and it is the third record-surface exception. Alpha carries volume (four steps against the busiest day); hue carries the day's success rate: **≥ 90 % green, 60–90 % orange, below that red**, empty days on the greyscale. The thresholds are the point — "any red at all" would paint nearly every busy day red and say nothing, because one failing proof out of nine is weather, not a bad day. Hovering a tile opens a hover card with the day, the number of proofs replayed, and the passed/failed split as both a percentage and a count.
 

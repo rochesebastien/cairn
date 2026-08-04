@@ -1468,7 +1468,7 @@ pre {
   display: flex;
   flex-direction: column;
   height: 100%;
-  padding: 6vh var(--gutter) 30px;
+  padding: 5vh var(--gutter) 7vh;
   overflow-y: auto;
 }
 
@@ -1481,10 +1481,12 @@ pre {
   margin: auto 0;
 }
 
-/* the glyph alone and large: the wordmark already lives in the sidebar */
+/* the glyph alone and deliberately huge — it carries the whole upper half of
+   the screen, so it is sized against the window, not in pixels */
 .home-mark {
-  width: 124px;
-  height: 124px;
+  width: auto;
+  height: min(42vh, 460px);
+  max-width: 44%;
   object-fit: contain;
   filter: invert(1);
 }
