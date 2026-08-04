@@ -6,13 +6,13 @@ Visual identity for the Cairn desktop app (and the showcase site, which follows 
 
 **Monochrome, structural, quiet.** The reference points are shadcn/ui and Linear: a neutral canvas, hairline borders doing the work that shadows and glows used to do, and type carrying the hierarchy. Nothing on screen is decorative.
 
-There is **no brand hue**. The interface is black, white, and the greys between them. Where something must stand out, it stands out by contrast, weight, or placement — never by colour. This is a deliberate reversal of the earlier amber direction: a tool that a developer keeps open all day should recede, and the only thing allowed to be loud is the user's own words.
+There is **no brand hue**. The interface is black, white, and the greys between them. Where something must stand out, it stands out by contrast, weight, or placement — never by colour. The one exception is a stone's status, which gets three fixed hues at glyph scale (see *Status* below); everything else stays on the greyscale. This is a deliberate reversal of the earlier amber direction: a tool that a developer keeps open all day should recede, and the only thing allowed to be loud is the user's own words.
 
 Cairn is a *reading* app before anything else. Every layout decision optimizes for reading intent quickly — generous measure, calm hierarchy, nothing competing with the text. The pitch of the UI is not "watch tests go green", it is: **do these stones describe what I wanted?**
 
 ## What we are NOT
 
-- No brand colour, no accent hue, no gradient. If you are reaching for a colour, you are solving the wrong problem.
+- No brand colour, no accent hue, no gradient. If you are reaching for a colour for anything other than a stone's status, you are solving the wrong problem.
 - No ambient glow, no frosted glass, no backdrop blur. The canvas is flat.
 - No Inter/Roboto default look, no "AI dashboard" template, no neumorphism.
 - No traffic-light dashboard. A wall of coloured tiles is exactly the failure mode.
@@ -74,21 +74,31 @@ Defined in `src/app.css`. Use the variables; never hardcode. The scale is neutra
 
 Both themes share one rule: **the accent is the opposite end of the greyscale from the canvas.** A primary button is a solid block of `--accent` with `--accent-fg` text. Everything else is ghost or outline.
 
-### Status, without colour
+### Status — the one place colour is allowed
 
-Cairn's core data is status, and status must stay readable in a palette that has no hues. Status is carried by **shape and weight, not colour** — a 12px monochrome glyph (`.status-mark`), not a coloured dot:
+The interface is monochrome. **Status is the single, deliberate exception**, because it is Cairn's core data and a verdict has to be readable at a glance. Three hues, fixed, and no fourth:
 
-| Status | Glyph | Treatment |
+```
+--status-proven      #438440   rgb(67, 132, 64)    green
+--status-broken      #E9484C   rgb(233, 72, 76)    red
+--status-escalated   #E99A3F   rgb(233, 154, 63)   orange — waiting on a human
+```
+
+Used verbatim in both themes. `draft` and `retired` take **no hue** — a draft carries no verdict yet, and a retired stone left the suite; both stay on the greyscale.
+
+Status is carried by a 12px glyph (`.status-mark`) whose **shape and colour agree**, so neither one alone is load-bearing:
+
+| Status | Glyph | Colour |
 | --- | --- | --- |
-| `draft` | dashed circle | `--text-faint` — no verdict yet |
-| `proven` | filled circle with a check | `--text` — full contrast, it is the good state |
-| `broken` | circle with a cross | `--text`, plus a 2px `--border-strong` left edge on the row |
-| `escalated` | flag | `--text`, plus the row keeps its left edge — it is a queue |
-| `retired` | struck circle | `--text-whisper` — it left the suite |
+| `draft` | dashed circle | `--text-faint` |
+| `proven` | filled circle with a check | `--status-proven` |
+| `broken` | circle with a cross | `--status-broken` |
+| `escalated` | flag | `--status-escalated` |
+| `retired` | struck circle | `--text-whisper` |
 
-A status glyph is always paired with a text label wherever the space allows (drawer, chips, filters). Never rely on shape alone in a dense list — the label is not optional decoration, it is the fallback.
+**Scale discipline is what keeps this from becoming a dashboard.** Colour appears only on the glyph itself, on a `.status-chip`'s glyph, and on a 2px row edge for `broken` and `escalated`. It never becomes a card background, a large fill, a button, or a text colour for body copy. A glyph is still paired with its text label wherever the space allows — colour is reinforcement, not the only signal, and it must survive a colour-blind reader.
 
-> If a hue is ever reintroduced (a `--destructive` red for `broken`, in shadcn's sense), it is a single token, used only on the glyph and never on a fill — and it is a design decision to be taken explicitly, not a drift.
+Everything outside this table stays monochrome. Adding a fourth hue, or promoting one of these three to a fill, is a design decision to be taken explicitly — not a drift.
 
 ### Typography
 
@@ -181,5 +191,5 @@ View order mirrors value order: Review first — it is the home screen and the r
 - prefer adding a token to redefining an existing one
 - prefer adding a component to overloading an existing one
 - prefer extending the radii/spacing scale to one-off values
-- **never introduce a hue without an explicit design decision** — not for a status, not for a highlight, not "just for this one badge". Monochrome is the identity, not a phase.
+- **never introduce a hue outside the three status colours** — not for a highlight, not for a CTA, not "just for this one badge". Monochrome plus a three-colour verdict is the identity, not a phase.
 - never rebuild the wordmark in text beside the glyph — ship the lockup
