@@ -4,10 +4,15 @@
  * The mark, then a year of proof runs as one full-width heatmap. Nothing else:
  * the question this screen answers is "has this cairn been kept up?", and the
  * answer is a shape you read in a second, not a table.
+ *
+ * It reads across *every* open repository by default. A cairn is per
+ * repository, but the question is asked of the whole work; the two dropdowns
+ * narrow it to one project or one year when you need that.
  */
 
 import { useMemo, useState } from "react";
-import type { CairnSnapshot } from "../lib/cairn.js";
+import { useAllCairns, useAppState } from "../lib/app-state.js";
+import { repoName, type RunRecord } from "../lib/cairn.js";
 import {
   buildHeatmap,
   busiestDay,
@@ -15,6 +20,7 @@ import {
   heatLevel,
   heatTone,
   percent,
+  yearsWithRuns,
   type HeatDay,
 } from "../lib/heatmap.js";
 import { CairnMark } from "./icons.js";
@@ -26,41 +32,91 @@ interface Hovered {
   y: number;
 }
 
-export function HomeView({ snapshot }: { snapshot: CairnSnapshot | undefined }): JSX.Element {
+const ALL = "__all__";
+
+export function HomeView(): JSX.Element {
+  const { repos } = useAppState();
+  const results = useAllCairns(repos);
+
+  const [project, setProject] = useState<string>(ALL);
   const [hovered, setHovered] = useState<Hovered | null>(null);
 
-  const runs = useMemo(() => snapshot?.runs ?? [], [snapshot]);
-  const map = useMemo(() => buildHeatmap(runs, new Date()), [runs]);
-  const busiest = useMemo(() => busiestDay(map), [map]);
+  const today = useMemo(() => new Date(), []);
 
-  const stones = snapshot?.stones ?? [];
-  const proven = stones.filter((record) => record.stone.status === "proven").length;
+  /** Runs of every repository, or of the one the filter names. */
+  const runs = useMemo<RunRecord[]>(() => {
+    const out: RunRecord[] = [];
+    repos.forEach((root, i) => {
+      if (project !== ALL && project !== root) return;
+      const snapshot = results[i]?.data;
+      if (snapshot) out.push(...snapshot.runs);
+    });
+    return out;
+  }, [repos, results, project]);
+
+  const years = useMemo(() => yearsWithRuns(runs, today), [runs, today]);
+  const [year, setYear] = useState<number>(today.getFullYear());
+  const activeYear = years.includes(year) ? year : (years[0] ?? today.getFullYear());
+
+  const map = useMemo(() => buildHeatmap(runs, activeYear, today), [runs, activeYear, today]);
+  const busiest = useMemo(() => busiestDay(map), [map]);
   const successRate = map.totalRuns > 0 ? map.totalGreen / map.totalRuns : null;
+  const loading = results.some((result) => result.isPending);
 
   return (
     <div className="home-view">
       <header className="home-head">
         <CairnMark className="home-mark" />
-        <h1 className="home-title">{snapshot?.name ?? "Cairn"}</h1>
-        <p className="home-sub">
-          {stones.length} stones · {proven} proven · {map.totalRuns} proofs replayed in the last year
-        </p>
       </header>
 
-      <section className="heat" aria-label="Proof runs over the last year">
+      <section className="heat" aria-label={`Proof runs in ${activeYear}`}>
         <div className="heat-top">
-          <h2 className="heat-title">Proofs replayed</h2>
-          <div className="heat-legend">
-            <span className="heat-legend-label">less</span>
-            {[1, 2, 3, 4].map((level) => (
-              <span key={level} className={`heat-cell is-pass level-${level}`} aria-hidden="true" />
-            ))}
-            <span className="heat-legend-label">more</span>
-            <span className="heat-legend-sep" aria-hidden="true" />
-            <span className="heat-cell is-mixed level-4" aria-hidden="true" />
-            <span className="heat-legend-label">failures creeping in</span>
-            <span className="heat-cell is-fail level-4" aria-hidden="true" />
-            <span className="heat-legend-label">a bad day</span>
+          <div className="heat-titles">
+            <h2 className="heat-title">Proofs replayed</h2>
+            <span className="heat-caption">
+              {loading
+                ? "reading the cairns…"
+                : `${map.totalRuns} in ${activeYear} · ${
+                    project === ALL ? `${repos.length} repositories` : repoName(project)
+                  }`}
+            </span>
+          </div>
+
+          <div className="heat-controls">
+            <label className="select">
+              <span className="select-label">Project</span>
+              <select
+                value={project}
+                onChange={(event) => {
+                  setProject(event.target.value);
+                }}
+              >
+                <option value={ALL}>All projects</option>
+                {repos.map((root) => (
+                  <option key={root} value={root}>
+                    {repoName(root)}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown />
+            </label>
+
+            <label className="select">
+              <span className="select-label">Year</span>
+              <select
+                value={activeYear}
+                onChange={(event) => {
+                  setYear(Number(event.target.value));
+                }}
+              >
+                {years.map((candidate) => (
+                  <option key={candidate} value={candidate}>
+                    {candidate}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown />
+            </label>
           </div>
         </div>
 
@@ -71,14 +127,14 @@ export function HomeView({ snapshot }: { snapshot: CairnSnapshot | undefined }):
               {map.months
                 .filter((month) => month.column <= map.weeks.length - 3)
                 .map((month) => (
-                <span
-                  key={`${month.label}-${month.column}`}
-                  className="heat-month"
-                  style={{ gridColumnStart: month.column + 1 }}
-                >
-                  {month.label}
-                </span>
-              ))}
+                  <span
+                    key={`${month.label}-${month.column}`}
+                    className="heat-month"
+                    style={{ gridColumnStart: month.column + 1 }}
+                  >
+                    {month.label}
+                  </span>
+                ))}
             </div>
 
             <div className="heat-body">
@@ -88,7 +144,11 @@ export function HomeView({ snapshot }: { snapshot: CairnSnapshot | undefined }):
                 <span>Fri</span>
               </div>
 
-              <div className="heat-grid" role="grid">
+              <div
+                className="heat-grid"
+                role="grid"
+                style={{ gridTemplateColumns: `repeat(${map.weeks.length}, minmax(0, 1fr))` }}
+              >
                 {map.weeks.map((week, w) => (
                   <div className="heat-week" role="row" key={`w-${w}`}>
                     {week.days.map((day) => {
@@ -133,22 +193,43 @@ export function HomeView({ snapshot }: { snapshot: CairnSnapshot | undefined }):
         </div>
 
         <footer className="heat-foot">
-          <span>
-            <strong>{map.activeDays}</strong> days with a run
-          </span>
-          <span aria-hidden="true">·</span>
-          <span>
-            longest streak <strong>{map.longestStreak}</strong> days
-          </span>
-          <span aria-hidden="true">·</span>
-          <span>
-            {successRate === null ? "no run yet" : <>{percent(successRate)} of runs passed</>}
-          </span>
+          <div className="heat-stats">
+            <span>
+              <strong>{map.activeDays}</strong> days with a run
+            </span>
+            <span aria-hidden="true">·</span>
+            <span>
+              longest streak <strong>{map.longestStreak}</strong> days
+            </span>
+            <span aria-hidden="true">·</span>
+            <span>{successRate === null ? "no run yet" : `${percent(successRate)} of runs passed`}</span>
+          </div>
+
+          <div className="heat-legend">
+            <span className="heat-legend-label">less</span>
+            {[1, 2, 3, 4].map((level) => (
+              <span key={level} className={`heat-cell is-pass level-${level}`} aria-hidden="true" />
+            ))}
+            <span className="heat-legend-label">more</span>
+            <span className="heat-legend-sep" aria-hidden="true" />
+            <span className="heat-cell is-mixed level-4" aria-hidden="true" />
+            <span className="heat-legend-label">failures creeping in</span>
+            <span className="heat-cell is-fail level-4" aria-hidden="true" />
+            <span className="heat-legend-label">a bad day</span>
+          </div>
         </footer>
       </section>
 
       {hovered ? <HeatCard hovered={hovered} /> : null}
     </div>
+  );
+}
+
+function ChevronDown(): JSX.Element {
+  return (
+    <svg className="select-chevron" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+      <path d="M3 4.6 6 7.6l3-3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
   );
 }
 

@@ -56,14 +56,24 @@ function addDays(date: Date, days: number): Date {
   return next;
 }
 
+/** Every calendar year that has at least one run, newest first. */
+export function yearsWithRuns(runs: RunRecord[], today: Date): number[] {
+  const years = new Set<number>([today.getFullYear()]);
+  for (const run of runs) {
+    const at = new Date(run.at);
+    if (!Number.isNaN(at.getTime())) years.add(at.getFullYear());
+  }
+  return [...years].sort((a, b) => b - a);
+}
+
 /**
- * Build the grid.
+ * Build the grid for one calendar year.
  *
- * The window ends on `today` and starts `weeks` Sundays back, so the last
- * column is the current week and every column is a full Sun→Sat week — the
- * same shape GitHub uses, for the same reason: the eye reads columns.
+ * Columns are full Sun→Sat weeks — the shape GitHub uses, for the reason the
+ * eye reads columns — so the grid overshoots the year at both ends; those
+ * days, and any day still in the future, keep their slot but render as a gap.
  */
-export function buildHeatmap(runs: RunRecord[], today: Date, weeks = 53): Heatmap {
+export function buildHeatmap(runs: RunRecord[], year: number, today: Date): Heatmap {
   const byDay = new Map<string, { green: number; red: number; skipped: number }>();
 
   for (const run of runs) {
@@ -75,9 +85,11 @@ export function buildHeatmap(runs: RunRecord[], today: Date, weeks = 53): Heatma
     byDay.set(key, bucket);
   }
 
-  // Last column is the week holding `today`; walk back to that week's Sunday.
-  const lastSunday = addDays(today, -today.getDay());
-  const start = addDays(lastSunday, -(weeks - 1) * 7);
+  const jan1 = new Date(year, 0, 1);
+  const dec31 = new Date(year, 11, 31);
+  const start = addDays(jan1, -jan1.getDay());
+  const end = addDays(dec31, 6 - dec31.getDay());
+  const weeks = Math.round((end.getTime() - start.getTime()) / (7 * 86_400_000)) + 1;
   const todayKey = dayKey(today);
 
   const out: HeatWeek[] = [];
@@ -95,7 +107,7 @@ export function buildHeatmap(runs: RunRecord[], today: Date, weeks = 53): Heatma
     for (let d = 0; d < 7; d += 1) {
       const date = addDays(start, w * 7 + d);
       const key = dayKey(date);
-      const outside = key > todayKey;
+      const outside = date.getFullYear() !== year || key > todayKey;
       const bucket = byDay.get(key);
       const green = bucket?.green ?? 0;
       const red = bucket?.red ?? 0;
@@ -126,7 +138,7 @@ export function buildHeatmap(runs: RunRecord[], today: Date, weeks = 53): Heatma
       });
 
       // Month label sits on the week whose first row crosses into a new month.
-      if (d === 0) {
+      if (d === 0 && date.getFullYear() === year) {
         const month = date.getMonth();
         if (month !== lastMonth) {
           months.push({ label: MONTHS[month] ?? "", column: w });
@@ -145,8 +157,8 @@ export function buildHeatmap(runs: RunRecord[], today: Date, weeks = 53): Heatma
     totalRed,
     activeDays,
     longestStreak,
-    from: dayKey(start),
-    to: todayKey,
+    from: dayKey(jan1),
+    to: dayKey(dec31) < todayKey ? dayKey(dec31) : todayKey,
   };
 }
 

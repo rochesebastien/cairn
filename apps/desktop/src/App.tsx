@@ -69,7 +69,7 @@ export function App(): JSX.Element {
               </div>
             </>
           ) : view === "home" ? (
-            <HomeView snapshot={snapshot} />
+            <HomeView />
           ) : view === "review" ? (
             <ReviewView drafts={drafts} onOpen={setSelectedId} drawerOpen={selected !== undefined} />
           ) : view === "cairn" ? (
