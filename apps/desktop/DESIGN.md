@@ -120,7 +120,11 @@ Everything outside this table stays monochrome. Adding a fourth hue, or promotin
 
 ### Elevation
 
-Borders carry structure; shadows are nearly absent. **One recipe per theme, and only on genuinely floating surfaces** (the drawer, modals, popovers):
+**Nothing is framed.** There is no box around the view, no box around a card, no box around a list row. A rectangle drawn around content says "widget"; the content here is not a widget. Structure comes from **space first**, then from a single hairline used as a *divider* — between rows of a list, between stacked cards — and from a 2px left rule when something has a state worth flagging. A `1px solid var(--border)` may separate two things; it may not enclose one.
+
+Small controls are the exception, because their outline is what makes them look pressable: buttons, chips, `kbd`, the select. Floating surfaces — the drawer, the hover card — keep their border too, since they sit over other content and need an edge. Surfaces with their own fill (code, diffs, run logs) need neither: the background already bounds them.
+
+Shadows are nearly absent. **One recipe per theme, and only on genuinely floating surfaces** (the drawer, modals, popovers):
 
 ```
 dark:   0 16px 40px -24px rgba(0,0,0,0.80)
