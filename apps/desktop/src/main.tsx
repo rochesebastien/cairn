@@ -1,7 +1,8 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import "@fontsource-variable/geist";
+import "@fontsource-variable/stack-sans-text";
+import "@fontsource-variable/stack-sans-headline";
 import "@fontsource-variable/geist-mono";
 import "./app.css";
 import { App } from "./App.js";

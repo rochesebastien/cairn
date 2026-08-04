@@ -62,11 +62,10 @@ Status color appears **only** at small scale: the `.status-dot`, a thin card edg
 
 ### Typography
 
-- UI / body: **Geist Variable** — distinctive but restrained.
-- Mono: **Geist Mono Variable** — ULIDs, proof paths, spec code, run output, commit hashes, kbd. In Cairn the mono voice is load-bearing: everything that is *record* rather than *prose* is mono.
-- `letter-spacing: -0.005em` baseline; `-0.012em` on view titles (display-sized text reads tighter).
-- `font-feature-settings: "ss01", "cv11"` — open digits matter here (ULIDs, run timestamps).
-- Avoid bold on body text; weight range is 350 / 400 / 500.
+- UI / body: **Stack Sans Text** (variable, family `'Stack Sans Text Variable'`) — Regular (400), `letter-spacing: -0.04em` baseline. Self-hosted via `@fontsource-variable/stack-sans-text`; no CDN.
+- Titles: **Stack Sans Headline** (variable, family `'Stack Sans Headline Variable'`) — Bold (700), `letter-spacing: -0.02em`. Applies to the brand name, view titles, stone/review titles, drawer titles — anything that names a thing, not anything that merely labels a field.
+- Mono: **Geist Mono Variable** — ULIDs, proof paths, spec code, run output, commit hashes, kbd. In Cairn the mono voice is load-bearing: everything that is *record* rather than *prose* is mono. Keeps `font-feature-settings: "ss01", "cv11"` (open digits for ULIDs and timestamps).
+- Body text stays Regular; bold weight belongs to Headline titles only. Emphasis inside body copy uses color (`--text` vs `--text-dim`), not weight.
 - Acceptance criteria render at body size with a comfortable measure (~68ch max). They are the most-read text in the app; treat them like an editor treats a paragraph, not like a table cell.
 
 ### Radii

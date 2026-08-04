@@ -117,12 +117,11 @@ body {
   margin: 0;
   background: var(--bg-base);
   color: var(--text);
-  font-family: 'Geist Variable', ui-sans-serif, system-ui, sans-serif;
+  font-family: 'Stack Sans Text Variable', ui-sans-serif, system-ui, sans-serif;
   font-size: 14px;
   font-weight: 400;
   line-height: 1.55;
-  letter-spacing: -0.005em;
-  font-feature-settings: 'ss01', 'cv11';
+  letter-spacing: -0.04em;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   overflow: hidden;
@@ -248,9 +247,10 @@ pre {
 }
 
 .brand-name {
+  font-family: 'Stack Sans Headline Variable', ui-sans-serif, system-ui, sans-serif;
   font-size: 15px;
-  font-weight: 500;
-  letter-spacing: -0.012em;
+  font-weight: 700;
+  letter-spacing: -0.02em;
 }
 
 .brand-sub {
@@ -506,9 +506,10 @@ pre {
 
 .view-title {
   margin: 0;
+  font-family: 'Stack Sans Headline Variable', ui-sans-serif, system-ui, sans-serif;
   font-size: 19px;
-  font-weight: 500;
-  letter-spacing: -0.012em;
+  font-weight: 700;
+  letter-spacing: -0.02em;
 }
 
 .view-subtitle {
@@ -795,9 +796,10 @@ pre {
 
 .review-title {
   margin: 8px 0 0;
+  font-family: 'Stack Sans Headline Variable', ui-sans-serif, system-ui, sans-serif;
   font-size: 17px;
-  font-weight: 400;
-  letter-spacing: -0.012em;
+  font-weight: 700;
+  letter-spacing: -0.02em;
   line-height: 1.35;
 }
 
@@ -1226,9 +1228,10 @@ pre {
 
 .drawer-title {
   margin: 6px 0 0;
+  font-family: 'Stack Sans Headline Variable', ui-sans-serif, system-ui, sans-serif;
   font-size: 18px;
-  font-weight: 400;
-  letter-spacing: -0.012em;
+  font-weight: 700;
+  letter-spacing: -0.02em;
   line-height: 1.35;
 }
 
