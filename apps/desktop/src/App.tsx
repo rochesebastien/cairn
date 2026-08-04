@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useAppState, useCairn, useProvenPulse } from "./lib/app-state.js";
 import { useTheme } from "./lib/theme.js";
 import { useSettings } from "./lib/settings.js";
+import { LangProvider } from "./lib/i18n.js";
 import { Sidebar, type ViewName } from "./components/Sidebar.js";
 import { SearchPalette } from "./components/SearchPalette.js";
 import { SettingsDialog } from "./components/SettingsDialog.js";
@@ -46,6 +47,7 @@ export function App(): JSX.Element {
   const selected = selectedId ? stones.find((record) => record.stone.id === selectedId) : undefined;
 
   return (
+    <LangProvider lang={settings.language}>
     <div className="app-shell">
       <Sidebar
         view={view}
@@ -165,5 +167,6 @@ export function App(): JSX.Element {
         />
       ) : null}
     </div>
+    </LangProvider>
   );
 }

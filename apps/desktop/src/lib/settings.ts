@@ -7,6 +7,7 @@
  */
 
 import { useCallback, useEffect, useState } from "react";
+import type { Lang } from "./i18n.js";
 
 const KEY = "cairn.settings";
 
@@ -15,11 +16,14 @@ export interface Settings {
   sidebarCollapsed: boolean;
   /** Honour the OS "reduce motion" preference even when it is not set. */
   reduceMotion: boolean;
+  /** Interface language. English is the default; the vocabulary never translates. */
+  language: Lang;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
   sidebarCollapsed: false,
   reduceMotion: false,
+  language: "en",
 };
 
 export function readSettings(): Settings {
@@ -31,6 +35,7 @@ export function readSettings(): Settings {
     return {
       sidebarCollapsed: parsed.sidebarCollapsed === true,
       reduceMotion: parsed.reduceMotion === true,
+      language: parsed.language === "fr" ? "fr" : "en",
     };
   } catch {
     return DEFAULT_SETTINGS;
@@ -51,6 +56,7 @@ export function useSettings(): {
       // private mode: the choice still holds for this session
     }
     document.documentElement.dataset["motion"] = settings.reduceMotion ? "reduce" : "full";
+    document.documentElement.lang = settings.language;
   }, [settings]);
 
   const set = useCallback(<K extends keyof Settings>(key: K, value: Settings[K]) => {

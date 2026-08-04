@@ -240,12 +240,16 @@ pre {
   transition: background 140ms ease;
 }
 
-.brand:hover {
-  background: var(--surface-hover);
+/* No plate behind the mark. A filled rectangle around a logo reads as a
+   button chrome and cheapens it; hover dims the artwork instead. */
+.brand:hover .brand-logo,
+.brand:hover .brand-glyph {
+  opacity: 0.72;
 }
 
-.brand.active {
-  background: var(--surface-active);
+.brand-logo,
+.brand-glyph {
+  transition: opacity 140ms ease;
 }
 
 .rail-toggle {
