@@ -1,8 +1,8 @@
+# Cairn
+
 <p align="center">
   <img src="assets/readme-cover.jpg" alt="Cairn — a registry of proven feature intentions" width="100%">
 </p>
-
-# Cairn
 
 **A registry of proven feature intentions.**
 
