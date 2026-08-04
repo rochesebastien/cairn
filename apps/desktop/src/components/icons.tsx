@@ -20,6 +20,7 @@ function Svg({ children, className }: IconProps & { children: React.ReactNode })
 }
 
 import cairnLogoUrl from "../assets/cairn-logo.svg";
+import cairnMarkUrl from "../assets/cairn-icon.svg";
 
 /**
  * The brand: the complete lockup — stone glyph *and* the "Cairn" wordmark, one
@@ -28,6 +29,15 @@ import cairnLogoUrl from "../assets/cairn-logo.svg";
  */
 export function CairnLogo({ className }: IconProps): JSX.Element {
   return <img className={className} src={cairnLogoUrl} alt="Cairn" />;
+}
+
+/**
+ * The glyph alone, for square contexts where the lockup cannot fit. The home
+ * screen is the one place in the shell that uses it: the wordmark would be
+ * redundant there, the repository name sits right underneath.
+ */
+export function CairnMark({ className }: IconProps): JSX.Element {
+  return <img className={className} src={cairnMarkUrl} alt="" aria-hidden="true" />;
 }
 
 /* --------------------------------------------------------------- status marks */

@@ -15,9 +15,10 @@ import {
   SunIcon,
 } from "./icons.js";
 
-export type ViewName = "review" | "cairn" | "escalations" | "runs";
+/** `home` is what the app opens on: no nav item is selected until you pick one. */
+export type ViewName = "home" | "review" | "cairn" | "escalations" | "runs";
 
-const NAV: { id: ViewName; label: string; Icon: (props: { className?: string | undefined }) => JSX.Element }[] = [
+const NAV: { id: Exclude<ViewName, "home">; label: string; Icon: (props: { className?: string | undefined }) => JSX.Element }[] = [
   { id: "review", label: "Review", Icon: ReviewIcon },
   { id: "cairn", label: "Cairn", Icon: CairnIcon },
   { id: "escalations", label: "Escalations", Icon: EscalationIcon },
@@ -51,10 +52,18 @@ export function Sidebar({
 
   return (
     <aside className="sidebar">
-      <div className="brand">
+      <button
+        type="button"
+        className={`brand ${view === "home" ? "active" : ""}`}
+        onClick={() => {
+          onView("home");
+        }}
+        aria-label="Home"
+        aria-current={view === "home" ? "page" : undefined}
+      >
         <CairnLogo className="brand-logo" />
         <span className="brand-sub">feature registry</span>
-      </div>
+      </button>
 
       <nav className="sidebar-section" aria-label="Views">
         {NAV.map(({ id, label, Icon }) => (

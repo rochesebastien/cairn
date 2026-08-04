@@ -6,13 +6,14 @@ import { ReviewView } from "./components/ReviewView.js";
 import { CairnView } from "./components/CairnView.js";
 import { EscalationsView } from "./components/EscalationsView.js";
 import { RunsView } from "./components/RunsView.js";
+import { HomeView } from "./components/HomeView.js";
 import { StoneDrawer } from "./components/StoneDrawer.js";
 import { Empty, ViewHeader } from "./components/bits.js";
 
 export function App(): JSX.Element {
   const { theme, toggle } = useTheme();
   const { activeRoot, openRepo } = useAppState();
-  const [view, setView] = useState<ViewName>("review");
+  const [view, setView] = useState<ViewName>("home");
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const cairn = useCairn(activeRoot);
@@ -67,6 +68,8 @@ export function App(): JSX.Element {
                 />
               </div>
             </>
+          ) : view === "home" ? (
+            <HomeView snapshot={snapshot} />
           ) : view === "review" ? (
             <ReviewView drafts={drafts} onOpen={setSelectedId} drawerOpen={selected !== undefined} />
           ) : view === "cairn" ? (

@@ -96,7 +96,9 @@ Status is carried by a 12px glyph (`.status-mark`) whose **shape and colour agre
 | `escalated` | flag | `--status-escalated` |
 | `retired` | struck circle | `--text-whisper` |
 
-**Scale discipline is what keeps this from becoming a dashboard.** Colour appears only on the glyph itself, on a `.status-chip`'s glyph, and on a 2px row edge for `broken` and `escalated`. It never becomes a card background, a large fill, a button, or a text colour for body copy. A glyph is still paired with its text label wherever the space allows — colour is reinforcement, not the only signal, and it must survive a colour-blind reader.
+**Scale discipline is what keeps this from becoming a dashboard.** Colour appears only on the glyph itself, on a `.status-chip`'s glyph, and on a 2px row edge for `broken` and `escalated`. It never becomes a card background, a button, or a text colour for body copy.
+
+Two **record surfaces** carry the same hues as an explicit exception, because there the verdict *is* the content and the terminal convention is older than this design system: the diff in Escalations (`+` green, `−` red) and the pass/fail lines of the run log. The home heatmap is the third and last — see below. Nothing else. A glyph is still paired with its text label wherever the space allows — colour is reinforcement, not the only signal, and it must survive a colour-blind reader.
 
 Everything outside this table stays monochrome. Adding a fourth hue, or promoting one of these three to a fill, is a design decision to be taken explicitly — not a drift.
 
@@ -162,6 +164,10 @@ Full-window app shell — a fixed sidebar plus a swappable main view:
 └──────────┴───────────────────────────────────┘
         + stone detail drawer (right overlay)
 ```
+
+**Home is what the app opens on**, with no nav item selected: the glyph alone (the wordmark would only repeat the repository name underneath), the counts in one line, and a full-width year of proof runs. Clicking the sidebar lockup returns there. It answers one question — *has this cairn been kept up?* — and answers it as a shape you read in a second, not a table.
+
+The **heatmap** is the one large coloured surface in the product, and it is the third record-surface exception. Alpha carries volume (four steps against the busiest day); hue carries the day's success rate: **≥ 90 % green, 60–90 % orange, below that red**, empty days on the greyscale. The thresholds are the point — "any red at all" would paint nearly every busy day red and say nothing, because one failing proof out of nine is weather, not a bad day. Hovering a tile opens a hover card with the day, the number of proofs replayed, and the passed/failed split as both a percentage and a count.
 
 The sidebar holds the **full logo lockup**, the view nav (**Review / Cairn / Escalations / Runs**), the open-repos list ("open repo…" — the app has no database; the repo *is* the state), then a foot with the **Verify** launcher and the theme toggle. The sidebar sits on `--bg-base` with a single `border-right`; it is not a tinted panel. The main area renders one view at a time inside a bordered card. Selecting a stone opens the detail drawer as a right-side overlay with a dimmed backdrop (Esc closes it).
 
