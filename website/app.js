@@ -21,7 +21,7 @@
     });
   }
 
-  /* ── Nav: frosted only once the canvas scrolls under it ──────────────── */
+  /* ── Nav: solid canvas + hairline only once the page scrolls under it ── */
   var nav = document.getElementById('nav');
   if (nav) {
     var onScroll = function () {

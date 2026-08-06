@@ -19,11 +19,107 @@ function Svg({ children, className }: IconProps & { children: React.ReactNode })
   );
 }
 
+import cairnLogoUrl from "../assets/cairn-logo.svg";
 import cairnMarkUrl from "../assets/cairn-icon.svg";
 
-/** The brand mark: the Cairn logo glyph. Black source, inverted to white by CSS in the dark theme. */
+/**
+ * The brand: the complete lockup — stone glyph *and* the "Cairn" wordmark, one
+ * image. Never rebuild the wordmark as CSS text beside a glyph. The artwork is
+ * solid black, inverted to white by CSS in the dark theme.
+ */
+export function CairnLogo({ className }: IconProps): JSX.Element {
+  return <img className={className} src={cairnLogoUrl} alt="Cairn" />;
+}
+
+/**
+ * The glyph alone, for square contexts where the lockup cannot fit. The home
+ * screen is the one place in the shell that uses it: the wordmark would be
+ * redundant there, the repository name sits right underneath.
+ */
 export function CairnMark({ className }: IconProps): JSX.Element {
   return <img className={className} src={cairnMarkUrl} alt="" aria-hidden="true" />;
+}
+
+/* --------------------------------------------------------------- status marks */
+
+/**
+ * Status carries no colour. Each state is a distinct 12px monochrome glyph in
+ * `currentColor`; the class on the wrapper picks the greyscale step, and a text
+ * label rides alongside wherever there is room for one.
+ */
+
+type MarkProps = { className?: string | undefined };
+
+function Mark({ children, className }: MarkProps & { children: React.ReactNode }): JSX.Element {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 12 12"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.4"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      {children}
+    </svg>
+  );
+}
+
+/** draft — a dashed circle: no verdict has been passed yet. */
+export function DraftMark({ className }: MarkProps): JSX.Element {
+  return (
+    <Mark className={className}>
+      <circle cx="6" cy="6" r="4.6" strokeDasharray="2 2.1" />
+    </Mark>
+  );
+}
+
+/** proven — a filled circle with a check punched through it. */
+export function ProvenMark({ className }: MarkProps): JSX.Element {
+  return (
+    <svg className={className} viewBox="0 0 12 12" fill="none" aria-hidden="true">
+      <circle cx="6" cy="6" r="5.1" fill="currentColor" />
+      <path
+        d="M3.7 6.2 5.25 7.75 8.4 4.4"
+        stroke="var(--accent-fg)"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+/** broken — a circle with a cross through it. */
+export function BrokenMark({ className }: MarkProps): JSX.Element {
+  return (
+    <Mark className={className}>
+      <circle cx="6" cy="6" r="4.8" />
+      <path d="M4.3 4.3 7.7 7.7M7.7 4.3 4.3 7.7" />
+    </Mark>
+  );
+}
+
+/** escalated — a flag: this one is waiting on a human. */
+export function EscalatedMark({ className }: MarkProps): JSX.Element {
+  return (
+    <Mark className={className}>
+      <path d="M3.1 1.3v9.6" />
+      <path d="M3.1 2.1h6.2L8.1 4.2l1.2 2.1H3.1" />
+    </Mark>
+  );
+}
+
+/** retired — a struck circle: it left the suite. */
+export function RetiredMark({ className }: MarkProps): JSX.Element {
+  return (
+    <Mark className={className}>
+      <circle cx="6" cy="6" r="4.8" />
+      <path d="M2.9 9.1 9.1 2.9" />
+    </Mark>
+  );
 }
 
 export function ReviewIcon({ className }: IconProps): JSX.Element {
@@ -90,6 +186,45 @@ export function CloseIcon({ className }: IconProps): JSX.Element {
   return (
     <Svg className={className}>
       <path d="M4 4l8 8M12 4l-8 8" />
+    </Svg>
+  );
+}
+
+export function SearchIcon({ className }: IconProps): JSX.Element {
+  return (
+    <Svg className={className}>
+      <circle cx="7.2" cy="7.2" r="4.6" />
+      <path d="M10.6 10.6l3 3" />
+    </Svg>
+  );
+}
+
+/** Sliders, not a cog: a cog at 15px reads as a sun next to the theme switch. */
+export function SettingsIcon({ className }: IconProps): JSX.Element {
+  return (
+    <Svg className={className}>
+      <path d="M2.5 4.6h4M9.5 4.6h4M2.5 11.4h2.4M7.9 11.4h5.6" />
+      <circle cx="8" cy="4.6" r="1.7" />
+      <circle cx="6.4" cy="11.4" r="1.7" />
+    </Svg>
+  );
+}
+
+/** Collapse / expand the sidebar: a panel with its rail. */
+export function PanelIcon({ className }: IconProps): JSX.Element {
+  return (
+    <Svg className={className}>
+      <rect x="2.2" y="3" width="11.6" height="10" rx="2" />
+      <path d="M6.4 3v10" />
+    </Svg>
+  );
+}
+
+export function ArrowTurnIcon({ className }: IconProps): JSX.Element {
+  return (
+    <Svg className={className}>
+      <path d="M12.5 3.5v4a2 2 0 01-2 2H4" />
+      <path d="M6.4 7.4L3.8 9.6l2.6 2.2" />
     </Svg>
   );
 }

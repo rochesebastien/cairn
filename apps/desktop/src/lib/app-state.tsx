@@ -8,7 +8,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { CairnSnapshot, StoneRecord, VerifyOptions, VerifyOutcome } from "./cairn.js";
 import { getSource } from "./source.js";
 
@@ -26,6 +26,22 @@ export function useCairn(root: string | null) {
     enabled: root !== null,
     queryFn: () => source.readCairn(root as string),
     staleTime: 5_000,
+  });
+}
+
+/**
+ * Every open repository at once. The home screen reads across all of them by
+ * default — a cairn is per repository, but "have the proofs been kept up?" is
+ * a question you ask of your whole work, not of one folder.
+ */
+export function useAllCairns(roots: string[]) {
+  const source = getSource();
+  return useQueries({
+    queries: roots.map((root) => ({
+      queryKey: queryKeys.cairn(root),
+      queryFn: () => source.readCairn(root),
+      staleTime: 5_000,
+    })),
   });
 }
 
@@ -229,7 +245,8 @@ export function useAppState(): AppStateValue {
 
 /**
  * The single moment of delight in the app: a stone that turns `proven` after a
- * local verify pulses once, amber → moss. Nothing else moves on status change.
+ * local verify gives its status mark one soft opacity pulse. Nothing else moves
+ * on status change.
  */
 export function useProvenPulse(stones: StoneRecord[] | undefined): Set<string> {
   const previous = useRef<Map<string, string>>(new Map());

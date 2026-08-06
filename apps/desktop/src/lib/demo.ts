@@ -26,6 +26,14 @@ import type {
 
 export const DEMO_ROOT = "/Users/you/code/lantern-shop";
 
+/**
+ * Two more repositories, so the home screen has something to aggregate and the
+ * project filter has something to filter. They carry a slice of the same
+ * stones and their own run history — enough to be reviewable, not a second
+ * fixture set to maintain.
+ */
+export const DEMO_ROOTS = [DEMO_ROOT, "/Users/you/code/atlas-crm", "/Users/you/code/harbor-docs"];
+
 /* --------------------------------------------------------------- fixtures */
 
 const A1 = "01KQS44ER0N2YEWE9ZJAB9HCPV";
@@ -492,7 +500,62 @@ const REPORTS: Record<string, FailureReport> = {
 
 /* ------------------------------------------------------------- demo runs */
 
-const RUNS: RunRecord[] = [
+/**
+ * A year of history, so the home heatmap has something to show.
+ *
+ * Deterministic on purpose — a seeded LCG, not Math.random — so two launches
+ * of the demo draw the same map and a screenshot stays comparable. The shape
+ * is the one a real project has: dense on weekdays, quiet at weekends, a
+ * fortnight of holiday, and a rough patch in the spring where the reds cluster.
+ */
+function syntheticRuns(startSeed = 20260612, density = 1): RunRecord[] {
+  const ids = SEEDS.map((seed) => seed.stone.id);
+  const rows: RunRecord[] = [];
+  let seed = startSeed;
+  const rand = (): number => {
+    seed = (seed * 1103515245 + 12345) % 2147483648;
+    return seed / 2147483648;
+  };
+
+  const today = new Date();
+  today.setHours(12, 0, 0, 0);
+
+  // Two calendar years, so the year filter has more than one thing to pick.
+  for (let back = 700; back >= 3; back -= 1) {
+    const day = new Date(today);
+    day.setDate(day.getDate() - back);
+    const weekday = day.getDay();
+    const isWeekend = weekday === 0 || weekday === 6;
+
+    // a fortnight off, 17 weeks ago
+    if (back <= 126 && back >= 112) continue;
+    // most weekends are quiet
+    if (isWeekend && rand() > 0.22 * density) continue;
+    if (!isWeekend && rand() > 0.86 * density) continue;
+
+    const runs = isWeekend ? 1 + Math.floor(rand() * 3) : 2 + Math.floor(rand() * 11);
+    // the spring rough patch: proofs go red far more often
+    const roughPatch = back <= 250 && back >= 205;
+    const redChance = roughPatch ? 0.42 : 0.04;
+
+    for (let i = 0; i < runs; i += 1) {
+      const at = new Date(day);
+      at.setHours(9 + Math.floor(rand() * 9), Math.floor(rand() * 60), Math.floor(rand() * 60), 0);
+      const red = rand() < redChance;
+      rows.push({
+        id: `s-${startSeed}-${back}-${i}`,
+        stoneId: ids[Math.floor(rand() * ids.length)] ?? null,
+        at: at.toISOString(),
+        verdict: red ? "red" : "green",
+        durationMs: 1800 + Math.floor(rand() * 9000),
+      });
+    }
+  }
+
+  return rows;
+}
+
+const RECENT_RUNS: RunRecord[] = [
   { id: "r-014", stoneId: "01KRNZNNW0DRBKNFK6PWAMNJT3", at: "2026-06-12T16:41:09.000Z", verdict: "red", durationMs: 8420 },
   { id: "r-013", stoneId: "01KT52VN80QMYQFSH19DRP2F24", at: "2026-06-12T16:40:55.000Z", verdict: "red", durationMs: 3110 },
   { id: "r-012", stoneId: "01KRGQEC807J14RB9KAEV1YJ2A", at: "2026-06-12T16:40:44.000Z", verdict: "red", durationMs: 5240 },
@@ -508,6 +571,9 @@ const RUNS: RunRecord[] = [
   { id: "r-002", stoneId: "01KTQAGDG070FY4KEBHQNM11Z6", at: "2026-06-10T07:45:03.000Z", verdict: "green", durationMs: 1980, commit: "0d31c98" },
   { id: "r-001", stoneId: "01KSZTMBM0CAFR4N0X2A7RMAGE", at: "2026-06-09T10:07:44.000Z", verdict: "red", durationMs: 10240 },
 ];
+
+/** The hand-written recent rows the other views quote, over a year of history. */
+const RUNS: RunRecord[] = [...RECENT_RUNS, ...syntheticRuns()];
 
 const VERIFY_TRANSCRIPT: string[] = [
   "$ pnpm exec playwright test --reporter=line",
@@ -554,7 +620,7 @@ export class DemoSource implements CairnSource {
   }
 
   initialRepos(): string[] {
-    return [DEMO_ROOT];
+    return [...DEMO_ROOTS];
   }
 
   async readCairn(root: string): Promise<CairnSnapshot> {
@@ -565,6 +631,30 @@ export class DemoSource implements CairnSource {
       stones.push({ stone: parsed.stone, body: parsed.body, path });
     }
     stones.sort((a, b) => (a.stone.id < b.stone.id ? -1 : 1));
+
+    // The secondary repos are smaller and quieter: a slice of the stones and
+    // their own year of runs, seeded from the root so each one has a shape.
+    const index = DEMO_ROOTS.indexOf(root);
+    const name = root.split("/").pop() ?? "cairn";
+    if (index > 0) {
+      const slice = stones.filter((_, i) => i % (index + 1) === 0);
+      return {
+        root,
+        name,
+        stones: slice,
+        unreadable: [],
+        config: {
+          baseURL: `http://localhost:${4321 + index}`,
+          proofsDir: ".cairn/proofs",
+          stonesDir: ".cairn/stones",
+          start: "pnpm dev",
+          retries: 1,
+        },
+        runs: syntheticRuns(9_000_000 * (index + 1), 0.55 / index),
+        reports: {},
+        readAt: new Date().toISOString(),
+      };
+    }
 
     return {
       root,

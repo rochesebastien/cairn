@@ -2,26 +2,37 @@ import type { StoneRecord, StoneStatus } from "../lib/cairn.js";
 import { countByStatus, repoName } from "../lib/cairn.js";
 import { useAppState } from "../lib/app-state.js";
 import type { Theme } from "../lib/theme.js";
-import { StatusDot } from "./bits.js";
+import { useT } from "../lib/i18n.js";
+import { StatusMark } from "./bits.js";
 import {
   CairnIcon,
+  CairnLogo,
   CairnMark,
   EscalationIcon,
   MoonIcon,
+  PanelIcon,
   PlayIcon,
   PlusIcon,
   ReviewIcon,
   RunsIcon,
+  SearchIcon,
+  SettingsIcon,
   SunIcon,
 } from "./icons.js";
 
-export type ViewName = "review" | "cairn" | "escalations" | "runs";
+/** `home` is what the app opens on: no nav item is selected until you pick one. */
+export type ViewName = "home" | "review" | "cairn" | "escalations" | "runs";
 
-const NAV: { id: ViewName; label: string; Icon: (props: { className?: string | undefined }) => JSX.Element }[] = [
-  { id: "review", label: "Review", Icon: ReviewIcon },
-  { id: "cairn", label: "Cairn", Icon: CairnIcon },
-  { id: "escalations", label: "Escalations", Icon: EscalationIcon },
-  { id: "runs", label: "Runs", Icon: RunsIcon },
+const NAV: {
+  id: Exclude<ViewName, "home">;
+  /** Dictionary key — the label itself is resolved at render, in the UI language. */
+  labelKey: string;
+  Icon: (props: { className?: string | undefined }) => JSX.Element;
+}[] = [
+  { id: "review", labelKey: "nav.review", Icon: ReviewIcon },
+  { id: "cairn", labelKey: "nav.cairn", Icon: CairnIcon },
+  { id: "escalations", labelKey: "nav.escalations", Icon: EscalationIcon },
+  { id: "runs", labelKey: "nav.runs", Icon: RunsIcon },
 ];
 
 /** Statuses the repo row summarises, in the order they matter. */
@@ -33,14 +44,23 @@ export function Sidebar({
   stones,
   theme,
   onToggleTheme,
+  collapsed,
+  onToggleCollapsed,
+  onOpenSearch,
+  onOpenSettings,
 }: {
   view: ViewName;
   onView: (view: ViewName) => void;
   stones: StoneRecord[];
   theme: Theme;
   onToggleTheme: () => void;
+  collapsed: boolean;
+  onToggleCollapsed: () => void;
+  onOpenSearch: () => void;
+  onOpenSettings: () => void;
 }): JSX.Element {
-  const { repos, activeRoot, selectRepo, openRepo, verify, sourceLabel } = useAppState();
+  const t = useT();
+  const { repos, activeRoot, selectRepo, openRepo, verify } = useAppState();
   const counts = countByStatus(stones);
 
   // Only Review and Escalations carry a count: they are the two queues.
@@ -50,17 +70,32 @@ export function Sidebar({
   };
 
   return (
-    <aside className="sidebar">
-      <div className="brand">
-        <CairnMark className="brand-mark" />
-        <div>
-          <div className="brand-name">Cairn</div>
-          <span className="brand-sub">feature registry</span>
-        </div>
+    <aside className={`sidebar ${collapsed ? "collapsed" : ""}`}>
+      <div className="sidebar-head">
+        <button
+          type="button"
+          className={`brand ${view === "home" ? "active" : ""}`}
+          onClick={() => {
+            onView("home");
+          }}
+          aria-label={t("nav.home")}
+          aria-current={view === "home" ? "page" : undefined}
+        >
+          {collapsed ? <CairnMark className="brand-glyph" /> : <CairnLogo className="brand-logo" />}
+        </button>
+        <button
+          type="button"
+          className="rail-toggle"
+          onClick={onToggleCollapsed}
+          aria-label={t(collapsed ? "sidebar.expand" : "sidebar.collapse")}
+          title={t(collapsed ? "sidebar.expand" : "sidebar.collapse")}
+        >
+          <PanelIcon className="nav-icon" />
+        </button>
       </div>
 
-      <nav className="sidebar-section" aria-label="Views">
-        {NAV.map(({ id, label, Icon }) => (
+      <nav className="sidebar-section" aria-label={t("sidebar.views")}>
+        {NAV.map(({ id, labelKey, Icon }) => (
           <button
             key={id}
             type="button"
@@ -69,17 +104,32 @@ export function Sidebar({
               onView(id);
             }}
             aria-current={view === id ? "page" : undefined}
+            title={collapsed ? t(labelKey) : undefined}
           >
             <Icon className="nav-icon" />
-            <span className="nav-label">{label}</span>
+            <span className="nav-label">{t(labelKey)}</span>
             {badge[id] ? <span className="count-badge">{badge[id]}</span> : null}
             {id === "runs" && verify.running ? <span className="count-badge">···</span> : null}
           </button>
         ))}
+
+        {/* Search sits under Cairn's views because it searches across all of them */}
+        <button
+          type="button"
+          className="nav-item"
+          onClick={onOpenSearch}
+          title={collapsed ? t("nav.search") : undefined}
+        >
+          <SearchIcon className="nav-icon" />
+          <span className="nav-label">{t("nav.search")}</span>
+          <span className="nav-kbd">
+            <kbd className="kbd">⌘K</kbd>
+          </span>
+        </button>
       </nav>
 
       <div className="sidebar-section" style={{ flex: 1, minHeight: 0 }}>
-        <div className="sidebar-label">Repositories</div>
+        <div className="sidebar-label">{t("sidebar.repositories")}</div>
         <div className="repo-list">
           {repos.map((root) => {
             const isActive = root === activeRoot;
@@ -95,9 +145,9 @@ export function Sidebar({
               >
                 <span className="repo-name">{repoName(root)}</span>
                 {isActive ? (
-                  <span className="repo-dots">
+                  <span className="repo-marks">
                     {SUMMARY_STATUSES.filter((status) => counts[status] > 0).map((status) => (
-                      <StatusDot key={status} status={status} />
+                      <StatusMark key={status} status={status} />
                     ))}
                   </span>
                 ) : null}
@@ -112,7 +162,7 @@ export function Sidebar({
             }}
           >
             <PlusIcon className="nav-icon" />
-            <span className="repo-name">open repo…</span>
+            <span className="repo-name">{t("sidebar.openRepo")}</span>
           </button>
         </div>
       </div>
@@ -126,18 +176,31 @@ export function Sidebar({
             onView("runs");
             void verify.run();
           }}
+          title={collapsed ? t("sidebar.verify") : undefined}
         >
           <PlayIcon />
-          {verify.running ? "verifying…" : "Verify"}
+          <span className="nav-label">{t(verify.running ? "sidebar.verifying" : "sidebar.verify")}</span>
         </button>
+
         <div className="foot-row">
-          <button type="button" className="theme-toggle" onClick={onToggleTheme}>
-            {theme === "dark" ? <MoonIcon className="nav-icon" /> : <SunIcon className="nav-icon" />}
-            {theme === "dark" ? "Dark" : "Light"}
+          <button
+            type="button"
+            className="nav-item settings-link"
+            onClick={onOpenSettings}
+            title={collapsed ? t("sidebar.settings") : undefined}
+          >
+            <SettingsIcon className="nav-icon" />
+            <span className="nav-label">{t("sidebar.settings")}</span>
           </button>
-          <span className="source-tag" title="where the app is reading from">
-            {sourceLabel}
-          </span>
+          <button
+            type="button"
+            className="theme-switch"
+            onClick={onToggleTheme}
+            aria-label={t(theme === "dark" ? "sidebar.toLight" : "sidebar.toDark")}
+            title={t(theme === "dark" ? "sidebar.toLight" : "sidebar.toDark")}
+          >
+            {theme === "dark" ? <MoonIcon className="nav-icon" /> : <SunIcon className="nav-icon" />}
+          </button>
         </div>
       </div>
     </aside>

@@ -2,10 +2,13 @@ import { useEffect, useRef, useState } from "react";
 import type { CairnSnapshot } from "../lib/cairn.js";
 import { useAppState } from "../lib/app-state.js";
 import { formatDuration } from "../lib/format.js";
+import { useLocale, useT } from "../lib/i18n.js";
 import { Empty, ViewHeader } from "./bits.js";
 
 /** Live `cairn verify` output. Mono, autoscrolling, with a follow toggle. */
 export function RunsView({ snapshot }: { snapshot: CairnSnapshot | undefined }): JSX.Element {
+  const t = useT();
+  const locale = useLocale();
   const { verify } = useAppState();
   const [follow, setFollow] = useState(true);
   const logRef = useRef<HTMLDivElement>(null);
@@ -17,17 +20,18 @@ export function RunsView({ snapshot }: { snapshot: CairnSnapshot | undefined }):
   }, [follow, verify.lines]);
 
   const subtitle = verify.running
-    ? (verify.command ?? "starting the runner…")
+    ? (verify.command ?? t("runs.starting"))
     : verify.outcome
-      ? `exit ${verify.outcome.code} · ${formatDuration(verify.outcome.durationMs)}`
+      ? `${t("runs.exit", { code: verify.outcome.code })} · ${formatDuration(verify.outcome.durationMs, locale)}`
       : snapshot
-        ? `${snapshot.config?.baseURL ?? "no baseURL in config"} · runner: pnpm exec playwright test`
-        : "no repository open";
+        ? // the command itself is a command, not prose
+          `${snapshot.config?.baseURL ?? t("runs.noBaseURL")} · ${t("runs.runner")}: pnpm exec playwright test`
+        : t("shell.noRepo");
 
   return (
     <>
       <ViewHeader
-        title="Runs"
+        title={t("runs.title")}
         subtitle={subtitle}
         tools={
           <>
@@ -40,7 +44,7 @@ export function RunsView({ snapshot }: { snapshot: CairnSnapshot | undefined }):
               aria-pressed={follow}
             >
               <span className="knob" />
-              follow
+              {t("runs.follow")}
             </button>
             <button
               type="button"
@@ -48,7 +52,7 @@ export function RunsView({ snapshot }: { snapshot: CairnSnapshot | undefined }):
               onClick={verify.clear}
               disabled={verify.lines.length === 0 || verify.running}
             >
-              clear
+              {t("runs.clear")}
             </button>
             <button
               type="button"
@@ -58,7 +62,7 @@ export function RunsView({ snapshot }: { snapshot: CairnSnapshot | undefined }):
               }}
               disabled={verify.running}
             >
-              {verify.running ? "verifying…" : "Verify"}
+              {t(verify.running ? "sidebar.verifying" : "runs.verify")}
             </button>
           </>
         }
@@ -66,10 +70,7 @@ export function RunsView({ snapshot }: { snapshot: CairnSnapshot | undefined }):
       {verify.running ? <div className="progress-hairline" /> : null}
       <div className="view-body">
         {verify.lines.length === 0 ? (
-          <Empty
-            title="No run yet"
-            hint="Verify replays the proofs with Playwright. No model is involved: the proof is an artifact."
-          />
+          <Empty title={t("runs.noRun")} hint={t("runs.noRunHint")} />
         ) : (
           <div className="run-log" ref={logRef}>
             <pre className="mono">
@@ -78,9 +79,9 @@ export function RunsView({ snapshot }: { snapshot: CairnSnapshot | undefined }):
                   key={line.id}
                   className={
                     line.kind === "green"
-                      ? "run-line-green"
+                      ? "run-line-pass"
                       : line.kind === "red"
-                        ? "run-line-red"
+                        ? "run-line-fail"
                         : line.kind === "plain"
                           ? ""
                           : "run-line-dim"

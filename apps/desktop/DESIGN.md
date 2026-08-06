@@ -1,91 +1,137 @@
 # DESIGN.md
 
-Visual identity for the Cairn desktop app.
+Visual identity for the Cairn desktop app (and the showcase site, which follows the same token table).
 
 ## Direction
 
-Refined minimal. Closer to Apple's own apps, Linear, Capacities than to dashboard SaaS. Restraint is the point — character comes from typography, spacing, and atmosphere, not from heavy chrome or loud animation.
+**Monochrome, structural, quiet.** The reference points are shadcn/ui and Linear: a neutral canvas, hairline borders doing the work that shadows and glows used to do, and type carrying the hierarchy. Nothing on screen is decorative.
 
-The app reads as a tool, not a brand showcase. The metaphor is mineral: stones stacked on a dark trail. The single bold choice is a warm **trail-marker amber** ambient gradient (brand `#D97A16`) that anchors the near-black canvas — the glow of a blaze painted on rock, not a neon sign.
+There is **no brand hue**. The interface is black, white, and the greys between them. Where something must stand out, it stands out by contrast, weight, or placement — never by colour. The one exception is a stone's status, which gets three fixed hues at glyph scale (see *Status* below); everything else stays on the greyscale. This is a deliberate reversal of the earlier amber direction: a tool that a developer keeps open all day should recede, and the only thing allowed to be loud is the user's own words.
 
-Cairn is a *reading* app before anything else. The pitch of the UI is not "watch tests go green", it is: **do these stones describe what I wanted?** Every layout decision optimizes for reading intent quickly — generous line length, calm hierarchy, nothing competing with the words.
+Cairn is a *reading* app before anything else. Every layout decision optimizes for reading intent quickly — generous measure, calm hierarchy, nothing competing with the text. The pitch of the UI is not "watch tests go green", it is: **do these stones describe what I wanted?**
 
 ## What we are NOT
 
-- No Inter / Roboto / system-font default look.
-- No purple gradient on white. No "AI dashboard" template.
-- No skeuomorphic depth. No glassy buttons. No neumorphism.
-- No scattered micro-interactions (button bounces, input wiggles, etc.).
-- No traffic-light dashboard: status color is metadata, never decoration. A screen full of green tiles is exactly the failure mode.
+- No brand colour, no accent hue, no gradient. If you are reaching for a colour for anything other than a stone's status, you are solving the wrong problem.
+- No ambient glow, no frosted glass, no backdrop blur. The canvas is flat.
+- No Inter/Roboto default look, no "AI dashboard" template, no neumorphism.
+- No traffic-light dashboard. A wall of coloured tiles is exactly the failure mode.
+- No scattered micro-interactions (button bounces, input wiggles).
 
 ## Tokens
 
-Defined in `src/app.css`. Use the variables; never hardcode.
+Defined in `src/app.css`. Use the variables; never hardcode. The scale is neutral zinc — no hue, no temperature.
 
 ### Color
 
-```
---bg-base           #0c0b0a               page base (warm near-black)
---bg-glow-primary   amber/0.14            ambient glow, bottom-left
---bg-glow-secondary slate-blue/0.05       ambient glow, top-right (cool counterweight)
-
---surface           rgba(24,22,20,0.62)   floating cards (frosted)
---surface-strong    rgba(30,28,26,0.88)   reserved for modals and the detail drawer
---surface-hover     rgba(255,255,255,0.035)
-
---border            rgba(255,255,255,0.07)   default
---border-strong     rgba(255,255,255,0.12)   emphasis
---border-focus      rgba(240,157,60,0.5)     focused inputs
-
---text              rgba(255,255,255,0.94)
---text-dim          rgba(255,255,255,0.62)
---text-faint        rgba(255,255,255,0.38)
---text-whisper      rgba(255,255,255,0.22)
-
---accent            #f09d3c               trail amber (dark theme) — single accent
---accent-soft       rgba(240,157,60,0.16) soft fills, focus rings, active nav
-```
-
-Brand color is `#D97A16`. It's used verbatim in the light theme; the dark theme brightens it to `#f09d3c` for legibility on near-black (same pattern as any accent that has to read as text on a dark canvas).
-
-**Single-accent rule, amended for Cairn.** Interaction accent is amber only — nav, focus, buttons, links. But Cairn's core data *is* status, so status hues exist from day one as a closed, semantic set. They are the only other hues allowed in the app:
+**Dark (default)**
 
 ```
---status-proven     #6fae7b   moss green — quiet, desaturated on purpose
---status-broken     #d4544a   signal red
---status-escalated  #f09d3c   the accent itself — escalation demands attention
---status-draft      --text-dim  (no hue: a draft has no verdict yet)
---status-retired    --text-whisper (no hue: it left the suite)
+--bg-base           #09090b   page canvas, flat
+--surface           #0c0c0e   cards and panels
+--surface-strong    #121215   modals, the detail drawer
+--surface-hover     rgba(255,255,255,0.04)
+--surface-active    rgba(255,255,255,0.07)
+
+--border            #1f1f23   default hairline
+--border-strong     #2e2e33   emphasis, focused card edge
+--ring              rgba(255,255,255,0.30)   focus ring
+
+--text              #fafafa
+--text-dim          #a1a1aa
+--text-faint        #71717a
+--text-whisper      #52525b
+
+--accent            #fafafa   the interactive colour IS white
+--accent-fg         #09090b   text on top of an accent fill
+--accent-hover      #e4e4e7
+--accent-soft       rgba(255,255,255,0.08)   active nav, soft fills
 ```
 
-Status color appears **only** at small scale: the `.status-dot`, a thin card edge, a count in `status`. Never as a card background, never as large fills. If a screen feels colorful, it's wrong.
+**Light (`[data-theme='light']`)**
+
+```
+--bg-base           #ffffff
+--surface           #ffffff
+--surface-strong    #ffffff
+--surface-hover     rgba(9,9,11,0.04)
+--surface-active    rgba(9,9,11,0.07)
+
+--border            #e4e4e7
+--border-strong     #d4d4d8
+--ring              rgba(9,9,11,0.30)
+
+--text              #09090b
+--text-dim          #52525b
+--text-faint        #71717a
+--text-whisper      #a1a1aa
+
+--accent            #18181b   the interactive colour IS near-black
+--accent-fg         #fafafa
+--accent-hover      #27272a
+--accent-soft       rgba(9,9,11,0.06)
+```
+
+Both themes share one rule: **the accent is the opposite end of the greyscale from the canvas.** A primary button is a solid block of `--accent` with `--accent-fg` text. Everything else is ghost or outline.
+
+### Status — the one place colour is allowed
+
+The interface is monochrome. **Status is the single, deliberate exception**, because it is Cairn's core data and a verdict has to be readable at a glance. Three hues, fixed, and no fourth:
+
+```
+--status-proven      #438440   rgb(67, 132, 64)    green
+--status-broken      #E9484C   rgb(233, 72, 76)    red
+--status-escalated   #E99A3F   rgb(233, 154, 63)   orange — waiting on a human
+```
+
+Used verbatim in both themes. `draft` and `retired` take **no hue** — a draft carries no verdict yet, and a retired stone left the suite; both stay on the greyscale.
+
+Status is carried by a 12px glyph (`.status-mark`) whose **shape and colour agree**, so neither one alone is load-bearing:
+
+| Status | Glyph | Colour |
+| --- | --- | --- |
+| `draft` | dashed circle | `--text-faint` |
+| `proven` | filled circle with a check | `--status-proven` |
+| `broken` | circle with a cross | `--status-broken` |
+| `escalated` | flag | `--status-escalated` |
+| `retired` | struck circle | `--text-whisper` |
+
+**Scale discipline is what keeps this from becoming a dashboard.** Colour appears only on the glyph itself, on a `.status-chip`'s glyph, and on a 2px row edge for `broken` and `escalated`. It never becomes a card background, a button, or a text colour for body copy.
+
+Two **record surfaces** carry the same hues as an explicit exception, because there the verdict *is* the content and the terminal convention is older than this design system: the diff in Escalations (`+` green, `−` red) and the pass/fail lines of the run log. The home heatmap is the third and last — see below. Nothing else. A glyph is still paired with its text label wherever the space allows — colour is reinforcement, not the only signal, and it must survive a colour-blind reader.
+
+Everything outside this table stays monochrome. Adding a fourth hue, or promoting one of these three to a fill, is a design decision to be taken explicitly — not a drift.
 
 ### Typography
 
-- UI / body: **Stack Sans Text** (variable, family `'Stack Sans Text Variable'`) — Regular (400), `letter-spacing: -0.04em` baseline. Self-hosted via `@fontsource-variable/stack-sans-text`; no CDN.
-- Titles: **Stack Sans Headline** (variable, family `'Stack Sans Headline Variable'`) — Bold (700), `letter-spacing: -0.02em`. Applies to the brand name, view titles, stone/review titles, drawer titles — anything that names a thing, not anything that merely labels a field.
-- Mono: **Geist Mono Variable** — ULIDs, proof paths, spec code, run output, commit hashes, kbd. In Cairn the mono voice is load-bearing: everything that is *record* rather than *prose* is mono. Keeps `font-feature-settings: "ss01", "cv11"` (open digits for ULIDs and timestamps).
-- Body text stays Regular; bold weight belongs to Headline titles only. Emphasis inside body copy uses color (`--text` vs `--text-dim`), not weight.
-- Acceptance criteria render at body size with a comfortable measure (~68ch max). They are the most-read text in the app; treat them like an editor treats a paragraph, not like a table cell.
+- UI / body: **Stack Sans Text** (`'Stack Sans Text Variable'`) — Regular 400, `letter-spacing: -0.04em`. Self-hosted, no CDN.
+- Titles: **Stack Sans Headline** (`'Stack Sans Headline Variable'`) — Bold 700, `letter-spacing: -0.02em`. Brand name, view titles, stone/review/drawer titles — anything that *names* a thing, never a field label.
+- Mono: **Geist Mono Variable** — ULIDs, proof paths, spec code, run output, commit hashes, kbd. The mono voice is load-bearing: everything that is *record* rather than *prose* is mono. Keeps `font-feature-settings: 'ss01', 'cv11'`.
+- Body stays Regular; bold belongs to Headline titles. Emphasis inside body copy is colour-step (`--text` vs `--text-dim`), not weight.
+- Acceptance criteria render at body size with a ~68ch measure. They are the most-read text in the app; treat them like an editor treats a paragraph, not like a table cell.
 
 ### Radii
 
 ```
---radius-card    14px   floating surfaces
---radius-pill    6px    badges, kbd, status chips
-items inside cards   10px (slightly less than the card)
+--radius-card    12px   cards, panels, the drawer
+--radius         8px    buttons, inputs, items inside cards
+--radius-pill    6px    chips, badges, kbd
 ```
 
-### Shadow
+### Elevation
 
-One shadow recipe for every floating surface:
+**Nothing is framed.** There is no box around the view, no box around a card, no box around a list row. A rectangle drawn around content says "widget"; the content here is not a widget. Structure comes from **space first**, then from a single hairline used as a *divider* — between rows of a list, between stacked cards — and from a 2px left rule when something has a state worth flagging. A `1px solid var(--border)` may separate two things; it may not enclose one.
+
+Small controls are the exception, because their outline is what makes them look pressable: buttons, chips, `kbd`, the select. Floating surfaces — the drawer, the hover card — keep their border too, since they sit over other content and need an edge. Surfaces with their own fill (code, diffs, run logs) need neither: the background already bounds them.
+
+Shadows are nearly absent. **One recipe per theme, and only on genuinely floating surfaces** (the drawer, modals, popovers):
 
 ```
-0 1px 0 rgba(255,255,255,0.04) inset,    /* top edge highlight */
-0 24px 60px -20px rgba(0,0,0,0.55)       /* long, soft drop */
+dark:   0 16px 40px -24px rgba(0,0,0,0.80)
+light:  0 1px 2px rgba(9,9,11,0.06), 0 8px 24px -12px rgba(9,9,11,0.10)
 ```
 
-Don't stack multiple shadows. Don't introduce harder shadows.
+Cards in a list get **no shadow at all** — a `1px solid var(--border)` is the whole treatment. Do not stack shadows. Do not add a second, harder recipe.
 
 ### Spacing rhythm
 
@@ -97,14 +143,26 @@ Loose, but consistent.
 - 16px above footers and hint rows
 - Stone cards in a list: 8px apart; lineage chains: 4px (they read as one object)
 
-## Theme
+## Language
 
-Two themes share the same accent and the same component layout — only the token table swaps.
+The interface ships in **English (default) and French**, switched from Settings → Language and persisted with the other preferences. One dictionary, `src/lib/i18n.tsx`, holds both languages; there is no i18n library.
 
-- **Dark (default):** `#0c0b0a` base, amber ambient glow, frosted surfaces over warm near-black. Accent brightened to `#f09d3c`.
-- **Light (`[data-theme='light']`):** warm off-white `#faf7f2` base (paper, not clinic), the same amber radial glow at lower opacity, white frosted surfaces with a shorter softer drop shadow, accent set to the exact brand `#D97A16`. Status hues darken one step to keep contrast.
+**The vocabulary never translates.** `cairn`, `stone`, `proof`, `warden`, `mason`, `verify`, `amend` and the five statuses (`draft`, `proven`, `broken`, `escalated`, `retired`) stay in English in every language. Two reasons, and both are load-bearing:
 
-Toggling lives in the sidebar foot. State persists in `localStorage` under `cairn.theme`. The read-only proof viewer ships one dark code theme in both app themes — swapping editor themes alongside the body theme is a known gap, same as Taffk.
+- the statuses are **values written into `.cairn/` files**, not labels — a French UI showing "prouvée" while the file says `proven` would be lying about the data;
+- the CLI, the skills and the docs are English, so a French reader must still recognise what `cairn verify` and `cairn amend` do. The sidebar button says **Verify** in both languages because it runs exactly that command.
+
+French therefore reads *"les stones"*, *"une proof rejouée"*, *"le rapport du warden"*. Everything else — labels, hints, prose, dates, numbers — is translated, and dates and percentages follow the chosen language through `useLocale()`, not the OS.
+
+French runs about 20% longer than English. The tight spots are the 244px sidebar, the heatmap legend and the review action row; check them at 900px width before shipping a new string.
+
+## Brand
+
+The logo is `assets/cairn-logo.svg` — **the stone glyph and the "Cairn" wordmark together, as one lockup**. Use the complete lockup wherever the product is named: the sidebar head, the site nav, the site footer. Do not rebuild the wordmark in CSS text next to the glyph, and do not ship the glyph alone as if it were the logo.
+
+`assets/cairn-icon.svg` — the glyph alone — is reserved for square contexts where a lockup cannot fit: app icons, favicons, avatars, and the home screen, where it is deliberately huge (`min(42vh, 460px)`) and the wordmark would only crowd it.
+
+Both files are solid black artwork on transparency. On the dark theme they render white via `filter: invert(1)`; on the light theme they render as-is. That is the only filter allowed on brand assets — never recolour them, never add a drop shadow.
 
 ## Layout
 
@@ -124,36 +182,45 @@ Full-window app shell — a fixed sidebar plus a swappable main view:
         + stone detail drawer (right overlay)
 ```
 
-The sidebar (frosted on `--sidebar-bg`) holds the brand mark, the view nav (**Review / Cairn / Escalations / Runs**), the open-repos list (with "open repo…" — the app has no database; the repo *is* the state), then a foot with the **Verify** launcher and the theme toggle. The main area renders one view at a time inside a single frosted card. Selecting a stone opens the detail drawer as a right-side overlay with a dimmed backdrop (Esc closes it).
+**Home is what the app opens on**, with no nav item selected: the glyph alone at close to half the window height, floating in the space above a full-width year of proof runs. Nothing else — no title, no counts line; the sidebar already names the product and the heatmap's own caption says what is being counted. Clicking the sidebar lockup returns there. It answers one question — *has this cairn been kept up?* — and answers it as a shape you read in a second, not a table.
 
-View order in the nav mirrors value order: Review first — it is the home screen and the reason the app exists.
+By default it reads **every open repository**, over the **current calendar year**. Two dropdowns at the top right of the card narrow it: project (all, or one) and year (only years that actually hold runs).
+
+The **heatmap** is the one large coloured surface in the product, and it is the third record-surface exception. Alpha carries volume (four steps against the busiest day); hue carries the day's success rate: **≥ 90 % green, 60–90 % orange, below that red**, empty days on the greyscale. The thresholds are the point — "any red at all" would paint nearly every busy day red and say nothing, because one failing proof out of nine is weather, not a bad day. Hovering a tile opens a hover card with the day, the number of proofs replayed, and the passed/failed split as both a percentage and a count.
+
+The sidebar **collapses to a 64px icon rail** from a button beside the lockup; the choice persists. Collapsed, labels, counts and the repository names drop out while every icon keeps its row, so nothing jumps when it reopens, and the lockup gives way to the glyph.
+
+**Search** sits under the views because it searches across all of them — ⌘K or the sidebar link opens one field over a dimmed page (the Raycast shape), matching stone titles, intents, acceptance criteria, verbatim requests, ULIDs, surfaces and statuses, plus the views and repositories themselves, so it doubles as a command bar. Arrows move, Enter goes, Esc closes.
+
+The foot pairs a **Settings** link with the theme switch on its right. Settings opens a **70vw dialog with its own left rail** (General / Appearance / Repositories / Verify / About). Only two kinds of row belong in it: preferences that genuinely persist on this machine, and read-only facts about what the app is reading. Anything belonging to a cairn belongs in `.cairn/` — the Verify pane shows `cairn.config.ts` and never writes it.
+
+The sidebar holds the **full logo lockup**, the view nav (**Review / Cairn / Escalations / Runs**), the open-repos list ("open repo…" — the app has no database; the repo *is* the state), then a foot with the **Verify** launcher and the theme toggle. The sidebar sits on `--bg-base` with a single `border-right`; it is not a tinted panel. The main area renders one view at a time inside a bordered card. Selecting a stone opens the detail drawer as a right-side overlay with a dimmed backdrop (Esc closes it).
+
+View order mirrors value order: Review first — it is the home screen and the reason the app exists.
 
 ## Components
 
 - `.app-shell` — `grid-template-columns: 244px 1fr`, 100vh.
-- **Sidebar** — `.nav-item` (with `.active` accent fill and a count badge for Review/Escalations), `.repo-item` (repo name + tiny status summary dots), `.sidebar-foot` (Verify launcher + theme).
-- **Review queue** (`.review-view`) — the core screen. One `.review-card` per draft/amendment: intent (body prose), acceptance criteria as a quiet list, `.provenance` (the verbatim request, mono, `--text-faint`, collapsed by default), then three actions: **Approve / Rephrase / Reject**. Approve is the accent button; the other two are ghost. Keyboard-first: j/k to move, a to approve.
-- **Cairn view** (`.cairn-view`) — the registry as a timeline/list. `.stone-item`: status dot, title, surface tag, age; filters by status and surface in the `.view-header`. `.lineage` — an amendment chain rendered as vertically linked stones, retired ancestors at `--text-whisper` with a struck dot. The chain is one visual object.
-- **Stone detail drawer** — `.detail-drawer` over `.detail-backdrop`. Sections in reading order: intent, acceptance, provenance, proof (`.proof-view`, read-only mono block, never editable here), run history (`.run-row`: date, verdict dot, duration), last failure's Playwright trace/screenshot embedded.
-- **Escalations view** — `.escalation-card`: the stone, the warden's structured failure report, the diff, and one honest choice: send back to coder / amend / retire.
-- **Runs view** — `.run-log`: live `cairn verify` output, mono, autoscroll with a "follow" toggle. A running verify shows an indeterminate hairline progress bar under the view header — no spinners in cards.
-- `.status-dot` — 7px circle, the sole carrier of status hue at list scale. `.status-chip` — pill with dot + label, used in the drawer only.
-- `.kbd` — mono, `--radius-pill`, whisper border; the review queue advertises its shortcuts in the hint footer.
+- **Sidebar** — `.brand-logo` (the lockup image, ~104px wide, inverted on dark), `.nav-item` (`.active` = `--surface-active` fill + `--text`, inactive = `--text-dim`; count badge for Review/Escalations), `.repo-item`, `.sidebar-foot` (Verify + theme toggle).
+- **Review queue** (`.review-view`) — the core screen. One `.review-card` per draft: intent prose, acceptance criteria as a quiet list, `.provenance` (verbatim request, mono, `--text-faint`, collapsed), then **Approve** (solid accent) / Rephrase / Reject (ghost). The focused card is marked by a `--border-strong` edge, not a colour. Keyboard-first: j/k to move, a to approve.
+- **Cairn view** (`.cairn-view`) — registry list. `.stone-item`: status mark, title, surface tag, age; filters by status and surface in the `.view-header`. `.lineage` — an amendment chain as vertically linked stones, retired ancestors at `--text-whisper`. The chain is one visual object.
+- **Stone detail drawer** — `.detail-drawer` over `.detail-backdrop`. Reading order: intent, acceptance, provenance, proof (`.proof-view`, read-only mono, never editable here), run history, last-failure trace.
+- **Escalations** — `.escalation-card`: stone + the warden's structured failure report + diff, and one honest choice: send back to coder / amend / retire.
+- **Runs** — `.run-log`: live `cairn verify` output, mono, autoscroll with a follow toggle. A running verify shows an indeterminate hairline bar under the view header — no spinners in cards.
+- `.status-mark` — the 12px monochrome glyph set above. `.status-chip` — pill with glyph + label, drawer only.
+- `.kbd` — mono, `--radius-pill`, `--border` outline.
 
-## Animation principles
+## Animation
 
-- One entrance animation on the shell. No per-item stagger (yet).
-- All hover/focus transitions are 120–200ms, ease.
-- No springy / bouncy easings. `cubic-bezier(0.2, 0.8, 0.2, 1)` for entrance, `ease` for state changes.
-- The drawer slides in 200ms with the same easing; the backdrop fades.
-- Reserve elaborate motion for moments of genuine delight. In Cairn there is exactly one: a stone transitioning to `proven` after a local verify — a single soft amber-to-moss pulse on its dot. Nothing else moves on status change. Never decorate.
+- One entrance animation on the shell. No per-item stagger.
+- Hover/focus transitions 120–200ms, `ease`. Entrance `cubic-bezier(0.2, 0.8, 0.2, 1)`. Drawer slides 200ms, backdrop fades.
+- No springy or bouncy easings.
+- One moment of delight, and only one: a stone reaching `proven` after a local verify gets a single soft opacity pulse on its status mark. Nothing else moves on status change. Never decorate.
 
 ## When to break the rules
 
-If you're adding a feature the current system can't express:
-
-- prefer adding a new token to redefining an existing one
+- prefer adding a token to redefining an existing one
 - prefer adding a component to overloading an existing one
-- prefer extending the radii / spacing scale to one-off values
-- never duplicate the amber ambient gradient — it is the canvas signature
-- never add a sixth status hue, and never promote status color to fills — if a state needs more emphasis, use placement and type weight, then propose a token in the design discussion
+- prefer extending the radii/spacing scale to one-off values
+- **never introduce a hue outside the three status colours** — not for a highlight, not for a CTA, not "just for this one badge". Monochrome plus a three-colour verdict is the identity, not a phase.
+- never rebuild the wordmark in text beside the glyph — ship the lockup
