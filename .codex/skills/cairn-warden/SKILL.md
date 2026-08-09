@@ -1,0 +1,1 @@
+../../../.claude/skills/cairn-warden/SKILL.md
