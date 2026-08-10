@@ -1,0 +1,145 @@
+# Publishes the three library packages to npm: @cairn/core, @cairn/cli,
+# @cairn/mcp.
+#
+# This is NOT the desktop release. `release.yml` builds and publishes the Tauri
+# app to GitHub Releases; this workflow only touches the npm registry. Both
+# react to a `v*` tag, which is intentional: one tag ships the app and the
+# packages together. They never write to the same place.
+#
+# Triggers:
+#   - Tag `v*` pushed (e.g. `v0.1.0`) — the normal path.
+#   - Manual run (Actions → Publish to npm → Run workflow), with a `dry_run`
+#     option that packs and validates without touching the registry.
+#
+# Publication order is the dependency order — core → cli → mcp — so that a
+# consumer never resolves @cairn/cli@0.1.0 before @cairn/core@0.1.0 exists.
+#
+# Re-runs are safe: a version already present on the registry is skipped, not
+# republished (npm forbids overwriting a published version anyway).
+#
+# Required secret: NPM_TOKEN — an npm *granular access token* (Automation) with
+# write access to the @cairn scope. See DEPLOYMENT.md §5.
+
+name: Publish to npm
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Validate and pack only — do not publish to npm"
+        type: boolean
+        default: false
+
+# Never let two publish runs race on the same registry.
+concurrency:
+  group: npm-publish
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    name: build · typecheck · test · publish
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # No `version:` input on purpose: pnpm/action-setup reads the
+      # `packageManager` field of the root package.json, so the pnpm used here
+      # is exactly the one pinned in the repository. Same pattern as ci.yml.
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+
+      # Must come after pnpm is on PATH: setup-node asks pnpm where its store
+      # lives before caching it. `registry-url` is what makes setup-node write
+      # the ~/.npmrc line that reads NODE_AUTH_TOKEN — without it, the publish
+      # step is unauthenticated.
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: pnpm
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm -r build
+
+      # Typecheck runs after build: @cairn/cli resolves @cairn/core through its
+      # published types (dist/index.d.ts), which only exist once core is built.
+      - name: Typecheck
+        run: pnpm -r typecheck
+
+      - name: Test
+        run: pnpm -r test
+
+      # Fails before any publish if a tarball is missing its entry point, so a
+      # broken package never reaches the registry half-published.
+      - name: Check tarball contents
+        run: |
+          set -euo pipefail
+          for pkg in core cli mcp; do
+            dir="packages/$pkg"
+            name=$(node -p "require('./$dir/package.json').name")
+            echo "── $name"
+            ( cd "$dir" && pnpm pack --pack-destination "$RUNNER_TEMP/packs" >/dev/null )
+          done
+          for tgz in "$RUNNER_TEMP"/packs/*.tgz; do
+            echo "── $(basename "$tgz")"
+            # Listed to a file first: piping tar into `grep -q` would kill tar
+            # with SIGPIPE, and `set -o pipefail` would report that as failure.
+            tar -tzf "$tgz" > "$RUNNER_TEMP/list.txt"
+            cat "$RUNNER_TEMP/list.txt"
+            grep -qx "package/dist/index.js" "$RUNNER_TEMP/list.txt" \
+              || { echo "::error::$(basename "$tgz") has no dist/index.js"; exit 1; }
+          done
+
+      - name: Publish
+        env:
+          # setup-node's ~/.npmrc points the registry auth token at this var.
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          set -euo pipefail
+
+          if [ "${DRY_RUN:-false}" = "true" ]; then
+            echo "::notice::dry_run — nothing will be published."
+          elif [ -z "${NODE_AUTH_TOKEN:-}" ]; then
+            echo "::error::NPM_TOKEN secret is not set. See DEPLOYMENT.md §5."
+            exit 1
+          fi
+
+          # Dependency order. Do not reorder: cli depends on core, mcp on both.
+          for pkg in core cli mcp; do
+            dir="packages/$pkg"
+            name=$(node -p "require('./$dir/package.json').name")
+            version=$(node -p "require('./$dir/package.json').version")
+
+            # Idempotent re-runs: an existing version is left alone. `npm view`
+            # exits non-zero when the package or the version is unknown, which
+            # is exactly the case where we do want to publish.
+            if npm view "$name@$version" version >/dev/null 2>&1; then
+              echo "::notice::$name@$version is already on the registry — skipped."
+              continue
+            fi
+
+            if [ "${DRY_RUN:-false}" = "true" ]; then
+              echo "would publish $name@$version"
+              continue
+            fi
+
+            echo "── publishing $name@$version"
+            # --no-git-checks: the tag is already the source of truth, and pnpm
+            # would otherwise refuse to publish from a detached HEAD.
+            # pnpm rewrites the `workspace:*` deps to the exact version on pack.
+            ( cd "$dir" && pnpm publish --access public --no-git-checks )
+          done

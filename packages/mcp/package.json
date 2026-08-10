@@ -2,7 +2,26 @@
   "name": "@cairn/mcp",
   "version": "0.1.0",
   "description": "MCP server exposing the cairn to agents: stones, drafts, amendments, proof runs and the acceptance lint.",
+  "keywords": [
+    "cairn",
+    "mcp",
+    "model-context-protocol",
+    "stones",
+    "acceptance-criteria",
+    "specification",
+    "feature-registry",
+    "ai-agents"
+  ],
   "license": "MIT",
+  "homepage": "https://github.com/rochesebastien/cairn#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rochesebastien/cairn.git",
+    "directory": "packages/mcp"
+  },
+  "bugs": {
+    "url": "https://github.com/rochesebastien/cairn/issues"
+  },
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -19,6 +38,9 @@
   "files": [
     "dist"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "clean": "node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true})\"",
@@ -38,6 +60,6 @@
     "vitest": "^2.1.3"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=22"
   }
 }

@@ -141,7 +141,7 @@ pnpm -r test
 ## Agents: prefer the MCP server over parsing CLI output
 
 ```sh
-claude mcp add cairn -- npx cairn-mcp --dir /path/to/project
+claude mcp add cairn -- npx @cairn/mcp --dir /path/to/project
 ```
 
 `list_stones`, `get_stone`, `create_draft`, `amend_stone`, `retire_stone`,
