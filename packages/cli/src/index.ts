@@ -55,6 +55,17 @@ export {
 export { currentCommit } from "./git.js";
 
 export {
+  appendToLedger,
+  ledgerPath,
+  readLedger,
+  recordRun,
+  type AppendedEvent,
+  type LedgerRead,
+  type RecordedRun,
+  type RunLine,
+} from "./ledger.js";
+
+export {
   lintContent,
   mergeContent,
   parseJsonPayload,
@@ -78,6 +89,7 @@ export {
   type ListOptions,
   type StoneFilter,
 } from "./commands/list.js";
+export { DEFINITIONS, metricsCommand, type MetricsOptions } from "./commands/metrics.js";
 export { showCommand, type ShowOptions } from "./commands/show.js";
 export { countByStatus, statusCommand, type StatusCounts, type StatusOptions } from "./commands/status.js";
 export { selectStones, verifyCommand, type VerifyOptions, type VerifyRow } from "./commands/verify.js";

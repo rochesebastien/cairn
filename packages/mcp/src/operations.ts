@@ -36,6 +36,7 @@ import {
   readAllStones,
   readFileOrNull,
   readOneStone,
+  recordRun,
   requireCairn,
   stoneJson,
   type Io,
@@ -268,8 +269,12 @@ export interface RunMeta {
   /** ISO instant of the run. Defaults to now. */
   at?: string;
   commit?: string;
-  /** sha256 of the proof. Computed from disk when omitted on a green run. */
+  /** sha256 of the proof. Computed from disk when omitted. */
   proofHash?: string;
+  /** Tokens this attempt cost, for the run ledger. Never guessed. */
+  tokens?: number;
+  /** Whether the proof was rewritten before this attempt. Inferred when omitted. */
+  proofEdited?: boolean;
 }
 
 export interface RecordRunInput {
@@ -283,6 +288,10 @@ export interface RecordRunInput {
  * does: core's `applyVerifyResult` decides the transition (a red draft stays a
  * draft), and a green run stamps `lastGreen` with the commit and the sha256 of
  * the proof that was green.
+ *
+ * A green or a red also appends one line to the stone's run ledger — the same
+ * `.cairn/runs/<ulid>.jsonl` `cairn verify` writes, marked `source: "mcp"`.
+ * `missing` is not a run and is not recorded.
  */
 export async function recordRunOp(
   target: CairnTarget,
@@ -296,7 +305,9 @@ export async function recordRunOp(
   let proofHash = input.runMeta?.proofHash;
   let commit = input.runMeta?.commit;
 
-  if (input.result === "green") {
+  // green and red both mean the proof ran: the ledger wants the hash and the
+  // commit of that run either way, not only of the green one.
+  if (input.result === "green" || input.result === "red") {
     if (proofHash === undefined && stone.proof) {
       const content = await readFileOrNull(resolveProofPath(project.root, stone.proof));
       if (content !== null) proofHash = hashProof(content);
@@ -312,6 +323,21 @@ export async function recordRunOp(
 
   if (applied.changed) await writeStone(file.filePath, applied.stone, file.body);
 
+  const recorded =
+    input.result === "green" || input.result === "red"
+      ? await recordRun(project, stone.id, {
+          result: input.result,
+          at,
+          ...(commit !== undefined ? { commit } : {}),
+          ...(proofHash !== undefined ? { proofHash } : {}),
+          ...(input.runMeta?.proofEdited !== undefined
+            ? { proofEdited: input.runMeta.proofEdited }
+            : {}),
+          ...(input.runMeta?.tokens !== undefined ? { tokens: input.runMeta.tokens } : {}),
+          source: "mcp",
+        })
+      : {};
+
   return {
     payload: {
       ok: true,
@@ -322,6 +348,9 @@ export async function recordRunOp(
       changed: applied.changed,
       ...(applied.transition ? { transition: applied.transition } : {}),
       ...(applied.reason ? { reason: applied.reason } : {}),
+      ...(recorded.event ? { attempt: recorded.event.attempt } : {}),
+      // A ledger write that failed is said out loud; it never fails the fold.
+      ...(recorded.warning ? { ledgerWarning: recorded.warning } : {}),
       stone: stoneWithBody(file, applied.stone, project),
     },
   };

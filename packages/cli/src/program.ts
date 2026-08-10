@@ -7,6 +7,7 @@ import { amendCommand } from "./commands/amend.js";
 import { escalateCommand } from "./commands/escalate.js";
 import { initCommand } from "./commands/init.js";
 import { listCommand } from "./commands/list.js";
+import { metricsCommand } from "./commands/metrics.js";
 import { showCommand } from "./commands/show.js";
 import { statusCommand } from "./commands/status.js";
 import { verifyCommand } from "./commands/verify.js";
@@ -152,6 +153,13 @@ export function buildProgram({ io, onExit }: BuildOptions): Command {
     .option("--json", "machine-readable output")
     .action(async (options) => {
       onExit(await statusCommand(io, options));
+    });
+
+  common(program.command("metrics"))
+    .description("what the loop costs: attempts, tokens, flakiness, read off .cairn/runs/")
+    .option("--json", "machine-readable output")
+    .action(async (options) => {
+      onExit(await metricsCommand(io, options));
     });
 
   return program;

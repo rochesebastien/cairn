@@ -46,7 +46,9 @@ the guarantee, on every push, is the cost of running Playwright.
 > browser**. If your feature is a CLI, a cron job, a queue consumer or a native
 > app, Cairn has nothing to prove it with yet. The registry, the lint, the
 > lifecycle and the CI ratchet are all runner-agnostic; only the proof format is
-> not. That is a real limit, not a roadmap flourish.
+> not. That is a real limit, not a roadmap flourish. What lifting it would take —
+> a `kind` on the stone, runners declared in the config, and the two new runners
+> worth designing — is written down in [proof-runners.md](proof-runners.md).
 
 ## The stone lifecycle
 
@@ -106,6 +108,7 @@ cairn verify                       # run every active stone's proof, fold result
 cairn verify --all --proven-only   # the CI ratchet: no proven stone may regress
 cairn verify --integrity --no-run  # the pure tamper audit, no Playwright at all
 cairn status                       # counts, drafts awaiting proof, broken, escalated
+cairn metrics                      # what the loop cost, read off .cairn/runs/
 ```
 
 Exit codes are a contract: **`0`** all good · **`1`** the cairn is unhappy (a red
@@ -120,7 +123,7 @@ Full walkthrough of one feature, end to end, with the mason/warden loop:
 | Path | What it is |
 | --- | --- |
 | [`packages/core`](../packages/core) | `@cairn/core` — the domain. Stone schema (Zod), frontmatter files, the acceptance lint, the frozen state machine, proof integrity hashing. No I/O policy, no CLI. |
-| [`packages/cli`](../packages/cli) | `@cairn/cli` — the `cairn` command: `init`, `add`, `amend`, `list`, `show`, `status`, `escalate`, `verify`. Everything is exported, so other surfaces call the same code paths instead of scraping output. |
+| [`packages/cli`](../packages/cli) | `@cairn/cli` — the `cairn` command: `init`, `add`, `amend`, `list`, `show`, `status`, `metrics`, `escalate`, `verify`. Everything is exported, so other surfaces call the same code paths instead of scraping output. |
 | [`packages/mcp`](../packages/mcp) | `@cairn/mcp` — the cairn over MCP (stdio), eight frozen tools and three `cairn://` resources. The acceptance guard-rail is enforced server-side; there is no `force`. |
 | [`apps/desktop`](../apps/desktop) | `cairn-desktop` — the Tauri 2 + React review app: read the stones, review the drafts, watch the proofs. Runs in a plain browser against a demo cairn with no Rust and no repository. |
 | [`.claude/skills`](../.claude/skills) | The three agent skills: [`cairn-mason`](../.claude/skills/cairn-mason/SKILL.md), [`cairn-warden`](../.claude/skills/cairn-warden/SKILL.md), [`cairn-triage`](../.claude/skills/cairn-triage/SKILL.md). Mirrored for Codex ([`.codex/skills`](../.codex/skills)) and Cursor ([`.cursor/rules`](../.cursor/rules)). They belong in the *target* project; they live here to be versioned with the CLI they call. |
@@ -157,7 +160,7 @@ Cairn's next phase is to register **its own** features as stones and run its own
 loop on itself. The stance is deliberate, and so are its limits: the v1 proof
 format is a browser, and most of this monorepo is a CLI, a library and an MCP
 server. So dogfooding starts where it is honest — `apps/desktop`, which is a real
-web UI — and the CLI keeps its 286 vitest tests, which are not stones and are not
+web UI — and the CLI keeps its 348 vitest tests, which are not stones and are not
 pretending to be. Registering a stone we cannot prove would be exactly the
 theatre the lint exists to prevent.
 
@@ -170,16 +173,43 @@ it does:
 
 | Metric | How it is collected | What it decides |
 | --- | --- | --- |
-| **Proven-without-human rate** | stones reaching `proven` with no escalation ÷ stones created | The headline. Below ~70 % the loop is a suggestion engine, not a guarantee. |
-| **Attempts per stone** | `.cairn/runs/<ulid>.jsonl`, one line per attempt; durable in `provenance.attempts` on escalate/amend | Median 1 → raise `N`. Median 3 and escalating → the fix is better acceptance criteria upstream, a mason problem, never a bigger budget. |
-| **Tokens per proven stone** | same ledger, `tokens` field, summed per stone | The number you put next to the cost of a human writing the same test. That comparison is the only one that matters. |
-| **Flaky rate** | stones going red then green with no code change between runs, per week | Proofs are supposed to be deterministic. Above a few percent the ratchet loses authority and people start asking for a bypass flag. |
-| **Review time per stone** | wall-clock in the desktop review view, draft raised → decision | Drafts are the cheap moment to fix a wrong promise. If review is slower than writing the feature, granularity is wrong. |
+| **Proven-without-human rate** | `cairn metrics`: proven stones with no `escalate` line, ÷ the stones the loop actually decided — every proven, broken or escalated stone, every draft with at least one run, and every stone escalated before a human amended it | The headline. Below ~70 % the loop is a suggestion engine, not a guarantee. |
+| **Attempts per stone** | `.cairn/runs/<ulid>.jsonl`, one line per attempt; durable in `provenance.attempts` on escalate/amend. `cairn metrics` reports the median and the distribution | Median 1 → raise `N`. Median 3 and escalating → the fix is better acceptance criteria upstream, a mason problem, never a bigger budget. |
+| **Tokens per proven stone** | same ledger, `tokens` field, summed per stone. Nothing counts tokens on its own: the number comes from whoever spent it, through `record_run`'s `runMeta.tokens` or `cairn escalate --tokens`. Until then `cairn metrics` reports it as not collected | The number you put next to the cost of a human writing the same test. That comparison is the only one that matters. |
+| **Flaky rate** | stones whose ledger holds a red immediately followed by a green with no code change in between — the same `commit` on both runs, or no commit recorded and no proof edit — over the stones with at least two runs | Proofs are supposed to be deterministic. Above a few percent the ratchet loses authority and people start asking for a bypass flag. |
+| **Review time per stone** | wall-clock in the desktop review view, draft raised → decision. **Not collected yet**: nothing instruments it, and `cairn metrics` says so rather than estimating it | Drafts are the cheap moment to fix a wrong promise. If review is slower than writing the feature, granularity is wrong. |
 
-Also worth watching: the share of attempts where the *proof* was wrong rather
-than the product (`proofEdited: true`). When that dominates, the warden is
-fighting the app instead of the product — usually because controls have no
-accessible names, which is itself a real defect worth a stone.
+Also worth watching, and reported next to the five: the share of attempts where
+the *proof* was wrong rather than the product (`proofEdited: true`). When that
+dominates, the warden is fighting the app instead of the product — usually
+because controls have no accessible names, which is itself a real defect worth a
+stone.
+
+### The runs ledger
+
+`.cairn/runs/<ulid>.jsonl` is one append-only file per stone, one JSON object
+per line, three kinds of line:
+
+```jsonl
+{"kind":"run","at":"2026-08-03T10:11:12.000Z","result":"red","attempt":1,"commit":"a1b2c3d","proofHash":"9f86d0…","source":"verify"}
+{"kind":"run","at":"2026-08-03T10:19:40.000Z","result":"green","attempt":2,"commit":"a1b2c3d","proofHash":"9f86d0…","proofEdited":false,"source":"verify"}
+{"kind":"escalate","at":"2026-08-03T10:40:00.000Z","attempts":2}
+{"kind":"amend","at":"2026-08-04T09:00:00.000Z","amendedBy":"01KZ4XGH…"}
+```
+
+`cairn verify` appends one `run` line per proof that actually ran — the hash is
+of the proof **as it was run**, on red as well as on green, because that is what
+tells a rewritten proof from a fixed product. `--dry-run` writes nothing. JSONL
+so a killed CI job costs one line and not the file; a line that cannot be parsed
+is skipped and counted, never guessed at.
+
+The ledger stays **out of git** — `cairn init` gitignores `runs/` with the rest
+of the run artifacts. It is local evidence, and CI-artifact evidence, not source:
+the cairn is the registry, the ledger is only what the loop cost. The durable
+summary is `provenance.attempts` / `provenance.tokens` on the stone, which
+`cairn escalate` and `cairn amend` stamp on the way out — so a stone that leaves
+the loop keeps its cost even when the ledger is gone, and `cairn metrics` falls
+back to it when there is no ledger to read.
 
 Without this ledger, `N = 3` is a number somebody liked. With it, it is a knob
 backed by evidence.

@@ -315,7 +315,20 @@ export function createCairnServer(options: CairnServerOptions = {}): McpServer {
             proofHash: z
               .string()
               .optional()
-              .describe("sha256 of the proof. Computed from disk when omitted on a green run."),
+              .describe("sha256 of the proof. Computed from disk when omitted on a run."),
+            tokens: z
+              .number()
+              .int()
+              .nonnegative()
+              .optional()
+              .describe("Tokens this attempt cost. Recorded in the run ledger, never guessed."),
+            proofEdited: z
+              .boolean()
+              .optional()
+              .describe(
+                "Whether the proof was rewritten before this attempt. Inferred from the " +
+                  "recorded hashes when omitted.",
+              ),
           })
           .optional(),
       },
