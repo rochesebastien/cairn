@@ -1,10 +1,11 @@
 # CI for the Cairn monorepo itself.
 #
-# This is NOT the ratchet. The ratchet — `cairn verify --all --proven-only` —
-# is shipped to target projects as a template under
-# packages/cli/templates/ci/. This workflow only keeps the workspace honest —
-# @cairn/core, @cairn/cli, @cairn/mcp and cairn-desktop: build, typecheck,
-# test. Keep it fast and boring.
+# Two jobs. `verify` keeps the workspace honest — @cairn/core, @cairn/cli,
+# @cairn/mcp and cairn-desktop: build, typecheck, test. `cairn` is the ratchet
+# — `cairn verify --all --proven-only` — running on the first dogfooded
+# surface, apps/desktop, through the same reusable workflow that target
+# projects copy from packages/cli/templates/ci/ (Phase 6: Cairn eats its own
+# cooking). Keep it fast and boring.
 
 name: CI
 
@@ -62,3 +63,13 @@ jobs:
 
       - name: Test
         run: pnpm -r test
+
+  # The dogfooding ratchet: replay the proofs of every proven stone of the
+  # desktop app. Same file target projects copy — cairn.yml IS the template.
+  cairn:
+    name: cairn ratchet (apps/desktop)
+    uses: ./.github/workflows/cairn.yml
+    with:
+      working-directory: apps/desktop
+      install-command: "corepack enable && pnpm install --frozen-lockfile && pnpm -r build"
+      base-url: "http://127.0.0.1:5183"

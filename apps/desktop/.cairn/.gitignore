@@ -1,0 +1,8 @@
+# Artifacts produced by `cairn verify`. The cairn itself (stones/, proofs/)
+# is source and must be committed; everything below is run output.
+runs/
+reports/
+results/
+*.log
+*.tmp
+last-report.json

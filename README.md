@@ -53,7 +53,8 @@ The mason, warden and triage skills ship for three agents, from a single source:
 
 They belong in the *target* project (the app whose features you register); they
 live here to be versioned with the CLI they call. [`AGENTS.md`](AGENTS.md)
-points any other agent at the same instructions.
+points any other agent at the same instructions; how the mirrors are kept in
+sync (and checked) is in [docs/agent-mirrors.md](docs/agent-mirrors.md).
 
 ## Documentation
 
