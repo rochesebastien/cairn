@@ -46,7 +46,9 @@ jobs:
       should_release: ${{ steps.meta.outputs.should_release }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
 
       - name: Determine release tag
         id: meta
@@ -95,30 +97,35 @@ jobs:
     runs-on: ${{ matrix.platform }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
 
       # Pas d'input `version:` : pnpm/action-setup lit le champ
       # `packageManager` du package.json racine, donc le pnpm utilisé ici est
       # exactement celui épinglé dans le dépôt (comme dans ci.yml).
       - name: Set up pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v4.4.0
 
       # Après pnpm : setup-node demande à pnpm où vit son store avant de le
       # mettre en cache.
       - name: Set up Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: "22"
           cache: pnpm
 
       - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@e97e2d8cc328f1b50210efc529dca0028893a2d9 # v1
         with:
+          # L'action épinglée par SHA ne lit plus la toolchain dans la ref
+          # (@stable) : elle se déclare ici.
+          toolchain: stable
           # Cibles requises pour le binaire macOS universel ; sans effet ailleurs.
           targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
 
       - name: Cache Rust build
-        uses: swatinem/rust-cache@v2
+        uses: swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
         with:
           workspaces: apps/desktop/src-tauri -> target
 
@@ -135,7 +142,7 @@ jobs:
         run: pnpm --filter @cairn/core build
 
       - name: Build app & publish release
-        uses: tauri-apps/tauri-action@v0
+        uses: tauri-apps/tauri-action@84b9d35b5fc46c1e45415bdb6144030364f7ebc5 # v0.6.2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -188,7 +195,7 @@ jobs:
 
       - name: Attach portable executable to the release
         if: matrix.platform == 'windows-latest'
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2.6.2
         with:
           tag_name: ${{ needs.check.outputs.tag }}
           files: ${{ env.PORTABLE_EXE }}

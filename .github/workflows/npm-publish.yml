@@ -49,20 +49,22 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
 
       # No `version:` input on purpose: pnpm/action-setup reads the
       # `packageManager` field of the root package.json, so the pnpm used here
       # is exactly the one pinned in the repository. Same pattern as ci.yml.
       - name: Set up pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v4.4.0
 
       # Must come after pnpm is on PATH: setup-node asks pnpm where its store
       # lives before caching it. `registry-url` is what makes setup-node write
       # the ~/.npmrc line that reads NODE_AUTH_TOKEN — without it, the publish
       # step is unauthenticated.
       - name: Set up Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: "22"
           cache: pnpm

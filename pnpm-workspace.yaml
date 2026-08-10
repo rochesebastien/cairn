@@ -1,3 +1,10 @@
 packages:
   - packages/*
   - apps/*
+
+# Supply-chain quarantine: a dependency version younger than 7 days is not
+# installable. Worm-style npm attacks (stolen token, poisoned release) are
+# almost always caught and unpublished within days — this window keeps a
+# fresh malicious version out of the lockfile. CI is unaffected: it installs
+# with --frozen-lockfile and never resolves new versions.
+minimumReleaseAge: 10080

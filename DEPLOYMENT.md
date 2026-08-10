@@ -313,9 +313,7 @@ Conséquences :
 
 ### À savoir
 
-- **`packages/core` et `packages/cli` n'ont pas de `README.md`** : leur page npm
-  sera vide. Seul `packages/mcp` en a un. Ajouter un README par package (même
-  court, avec un lien vers le dépôt) avant la première publication.
+- Chaque package a son `README.md` (repris sur sa page npm).
 - Le `LICENSE` de la racine est repris automatiquement par pnpm dans les trois
   tarballs — rien à faire.
 - Les tarballs embarquent les `*.js.map`, mais **pas** les sources `src/`
@@ -325,3 +323,47 @@ Conséquences :
 - `@cairn/cli` publie aussi `templates/` (les modèles de CI de §4 de
   [docs/ci.md](docs/ci.md)), accessibles après installation dans
   `node_modules/@cairn/cli/templates/ci/`.
+
+### Sécurité de la chaîne de publication
+
+Ce que le dépôt applique déjà est récapitulé dans [SECURITY.md](SECURITY.md)
+(quarantaine de 7 jours sur les versions fraîches, scripts d'installation des
+dépendances bloqués, actions épinglées par SHA, `persist-credentials: false`,
+audit bloquant en CI, cooldown Dependabot). Restent les réglages qui vivent
+côté npm et GitHub — à faire une fois, à la main :
+
+**Côté npm**
+
+1. **2FA obligatoire** sur le compte, et sur l'org `@cairn` une fois créée :
+   Org → Settings → « Require two-factor authentication ».
+2. **Token granulaire minimal** : type *Granular access token*, *Read and
+   write* limité au scope `@cairn`, **automation** (pas d'OTP au publish,
+   sinon le workflow bloque), avec expiration (90 jours) — à renouveler, pas
+   à élargir. Jamais de token « classic », jamais de token dans un fichier.
+3. **Migrer vers le trusted publishing (OIDC) dès la première publication
+   faite** : sur npmjs.com, chaque package → Settings → *Trusted publisher* →
+   GitHub Actions, dépôt `rochesebastien/cairn`, workflow `npm-publish.yml`.
+   Ensuite, supprimer le secret `NPM_TOKEN` : plus aucun token à voler, c'est
+   la défense de fond contre les vers de type Shai-Hulud, qui se propagent
+   précisément en volant des tokens de publication. (Le workflow devra alors
+   ajouter `permissions: id-token: write` et laisser npm ≥ 11.5 négocier
+   l'OIDC.)
+4. **Provenance** : l'attestation (`--provenance`) exige un dépôt source
+   public. Le dépôt étant privé aujourd'hui, elle est documentée mais pas
+   activée — l'activer le jour où le dépôt s'ouvre.
+
+**Côté GitHub** (Settings du dépôt)
+
+1. **Code security** : activer *Secret scanning* **et** *Push protection*
+   (un token npm ou autre secret poussé par erreur est bloqué avant d'entrer
+   dans l'historique).
+2. **Branch protection sur `main`** : exiger les checks `build · typecheck ·
+   test`, `pnpm audit (prod, high)`, `cairn verify (proven-only)` et
+   `cairn verify --integrity --no-run` ; interdire le force-push. Sans cela,
+   le ratchet et l'audit sont décoratifs.
+3. **Actions → General** : « Allow actions created by GitHub » + la liste des
+   actions épinglées, et *Workflow permissions* sur « Read repository
+   contents » par défaut.
+4. **Environnements** (optionnel mais recommandé) : placer `NPM_TOKEN` dans un
+   *environment* `npm` avec reviewers requis, et cibler cet environnement
+   depuis `npm-publish.yml` — un tag ne publie alors qu'après un clic humain.
