@@ -225,10 +225,10 @@ export function SettingsDialog({
                 {/* the file name stays a file name in every language, and keeps the mono voice */}
                 <p className="dialog-note">{codeAround(t("settings.verifyNote"), "cairn.config.ts")}</p>
                 <Row label={t("settings.baseURL")} hint={t("settings.baseURLHint")}>
-                  <span className="row-value mono">{config?.baseURL ?? "—"}</span>
+                  <span className="row-value mono">{config?.baseURL ?? "·"}</span>
                 </Row>
                 <Row label={t("settings.startCommand")} hint={t("settings.startCommandHint")}>
-                  <span className="row-value mono">{config?.start ?? "—"}</span>
+                  <span className="row-value mono">{config?.start ?? "·"}</span>
                 </Row>
                 <Row label={t("settings.setupHook")} hint={t("settings.setupHookHint")}>
                   <span className="row-value mono">{config?.setup ?? t("settings.none")}</span>

@@ -158,7 +158,7 @@ export function StoneDrawer({
               </>
             ) : (
               <p className="muted" style={{ margin: 0 }}>
-                {t("drawer.noProof")} — {t("drawer.noProofHint")}
+                {t("drawer.noProof")} · {t("drawer.noProofHint")}
               </p>
             )}
           </section>

@@ -26,7 +26,7 @@ function relativeFormatter(locale: string): Intl.RelativeTimeFormat {
 /** "3 days ago" / "il y a 3 j" — the unit ladder is ours, the wording is the locale's. */
 export function relativeTime(iso: string, locale = "en-GB", now: number = Date.now()): string {
   const at = Date.parse(iso);
-  if (Number.isNaN(at)) return "—";
+  if (Number.isNaN(at)) return "·";
   const delta = now - at;
   const rtf = relativeFormatter(locale);
   if (delta < MINUTE) return rtf.format(0, "second");
@@ -51,7 +51,7 @@ export function shortId(id: string): string {
 }
 
 export function formatDuration(ms: number, locale = "en-GB"): string {
-  if (!ms) return "—";
+  if (!ms) return "·";
   if (ms < 1000) return `${ms.toLocaleString(locale)}ms`;
   return `${(ms / 1000).toLocaleString(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}s`;
 }

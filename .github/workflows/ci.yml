@@ -93,5 +93,9 @@ jobs:
     uses: ./.github/workflows/cairn.yml
     with:
       working-directory: apps/desktop
-      install-command: "corepack enable && pnpm install --frozen-lockfile && pnpm -r build"
+      # The trailing re-install is not a mistake: the first install runs before
+      # @cairn/cli is built, so pnpm cannot create the `cairn` bin link
+      # (dist/bin.js does not exist yet) and `npx cairn` would find nothing.
+      # Re-running install after the build recreates the link in seconds.
+      install-command: "corepack enable && pnpm install --frozen-lockfile && pnpm -r build && pnpm install --frozen-lockfile"
       base-url: "http://127.0.0.1:5183"
