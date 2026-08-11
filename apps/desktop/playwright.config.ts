@@ -32,6 +32,10 @@ export default defineConfig({
     command: process.env.CAIRN_START ?? "pnpm dev",
     url: baseURL,
     reuseExistingServer: !process.env.CI,
-    timeout: 60_000,
+    // Cold CI runners pay corepack + vite start-up; keep the server's own
+    // output visible so a timeout is diagnosable from the job log.
+    timeout: 120_000,
+    stdout: "pipe",
+    stderr: "pipe",
   },
 });

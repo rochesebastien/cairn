@@ -16,6 +16,9 @@ export default defineConfig({
   server: {
     port: 5183,
     strictPort: true,
+    // Explicit IPv4: the proofs (and CI) poll http://127.0.0.1:5183, and a
+    // bare `localhost` can resolve to ::1 first on some runners.
+    host: "127.0.0.1",
   },
   build: {
     outDir: "dist",
