@@ -147,14 +147,14 @@ export function AppStateProvider({ children }: { children: ReactNode }): JSX.Ele
             push(event.line);
           } else {
             push(
-              event.code === 0 ? "— run finished, the cairn is happy" : `— run finished with exit code ${event.code}`,
+              event.code === 0 ? "· run finished, the cairn is happy" : `· run finished with exit code ${event.code}`,
               event.code === 0 ? "green" : "red",
             );
           }
         });
         setOutcome(result);
       } catch (error) {
-        push(`— verify could not start: ${error instanceof Error ? error.message : String(error)}`, "red");
+        push(`· verify could not start: ${error instanceof Error ? error.message : String(error)}`, "red");
       } finally {
         setRunning(false);
         if (activeRoot) {

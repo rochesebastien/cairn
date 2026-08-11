@@ -8,6 +8,7 @@ import {
   listStones,
   normalizeUlid,
   readStoneById,
+  runsDirFor,
   safeParseCairnConfig,
   type CairnConfig,
   type StoneFile,
@@ -36,6 +37,8 @@ export interface Project {
   stonesDir: string;
   /** Absolute path to the proofs directory, from the config. */
   proofsDir: string;
+  /** Absolute path to the measurement ledgers, a sibling of the stones dir. */
+  runsDir: string;
   config: CairnConfig;
   /** Absolute path to the loaded config, or null when defaults were used. */
   configPath: string | null;
@@ -136,12 +139,14 @@ export async function loadProject(options: LoadProjectOptions = {}): Promise<Pro
   const root = options.exact ? start : await findProjectRoot(start);
   const configPath = await findConfigPath(root);
   const config = configPath ? await loadConfigFile(configPath) : FALLBACK_CONFIG;
+  const stonesDir = path.resolve(root, ...config.stonesDir.split("/"));
 
   return {
     root,
     cairnDir: path.join(root, CAIRN_DIR),
-    stonesDir: path.resolve(root, ...config.stonesDir.split("/")),
+    stonesDir,
     proofsDir: path.resolve(root, ...config.proofsDir.split("/")),
+    runsDir: runsDirFor(stonesDir),
     config,
     configPath,
   };

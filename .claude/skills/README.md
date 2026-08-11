@@ -18,3 +18,8 @@ dogfooding them on itself in Phase 6.
 - `cairn-warden/SKILL.md` — stone → proof → proven
 - `cairn-triage/SKILL.md` — red proof → regression or amendment
 - `../../docs/orchestration.md` — the loop, the permission model, the anti-cheat hook
+
+These files are the **canonical source**. They are mirrored for Codex
+(`.codex/skills/`, symlinks) and Cursor (`.cursor/rules/*.mdc`, generated).
+After editing a SKILL.md here, run `scripts/sync-skills.sh` to refresh the
+mirrors; never edit the mirrors directly.

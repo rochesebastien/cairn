@@ -3,7 +3,7 @@
  * `cairn-mcp` — serve one project's cairn over MCP, on stdio.
  *
  * Register it with Claude Code:
- *   claude mcp add cairn -- npx cairn-mcp --dir /path/to/project
+ *   claude mcp add cairn -- npx @cairn/mcp --dir /path/to/project
  *
  * stdout belongs to the protocol: everything this file says goes to stderr.
  */

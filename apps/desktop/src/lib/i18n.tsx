@@ -142,8 +142,8 @@ export const DICT: Record<string, Entry> = {
   },
 
   "settings.reposNote": {
-    en: "Cairn has no database — a repository is the state. Opening one only remembers its path.",
-    fr: "Cairn n'a pas de base de données — le dépôt est l'état. En ouvrir un ne mémorise que son chemin.",
+    en: "Cairn has no database: a repository is the state. Opening one only remembers its path.",
+    fr: "Cairn n'a pas de base de données : le dépôt est l'état. En ouvrir un ne mémorise que son chemin.",
   },
   "settings.stonesCount": { en: "{count} stones", fr: "{count} stones" },
   "settings.readingRepo": { en: "reading…", fr: "lecture…" },
@@ -206,18 +206,18 @@ export const DICT: Record<string, Entry> = {
     fr: "cairn-mason écrit les drafts dans .cairn/stones à mesure qu'il extrait les intentions. Ils apparaissent ici.",
   },
   "review.subtitleEmpty": {
-    en: "nothing waiting — the mason has raised no new stones",
-    fr: "rien en attente — le mason n'a levé aucune nouvelle stone",
+    en: "nothing waiting, the mason has raised no new stones",
+    fr: "rien en attente, le mason n'a levé aucune nouvelle stone",
   },
   "review.sessionNote": {
-    en: "{count} decisions recorded in this session only. Writing them back to the cairn needs the MCP wiring ({createDraft} / {amendStone}) — the stones below are still drafts on disk.",
-    fr: "{count} décisions enregistrées pour cette session seulement. Les réécrire dans le cairn demande le câblage MCP ({createDraft} / {amendStone}) — les stones ci-dessous restent des drafts sur le disque.",
+    en: "{count} decisions recorded in this session only. Writing them back to the cairn needs the MCP wiring ({createDraft} / {amendStone}): the stones below are still drafts on disk.",
+    fr: "{count} décisions enregistrées pour cette session seulement. Les réécrire dans le cairn demande le câblage MCP ({createDraft} / {amendStone}) : les stones ci-dessous restent des drafts sur le disque.",
   },
   "review.noAcceptance": { en: "No acceptance criteria yet.", fr: "Pas encore de critères d'acceptation." },
   "review.decisionApproved": { en: "approved", fr: "approuvée" },
   "review.decisionRephrase": { en: "sent back for rephrasing", fr: "renvoyée pour reformulation" },
   "review.decisionRejected": { en: "rejected", fr: "rejetée" },
-  "review.decisionNote": { en: "{decision} — in this session", fr: "{decision} — sur cette session" },
+  "review.decisionNote": { en: "{decision} · in this session", fr: "{decision} · sur cette session" },
   "review.undo": { en: "undo", fr: "annuler" },
 
   /* --------------------------------------------------------------- cairn */
@@ -263,8 +263,8 @@ export const DICT: Record<string, Entry> = {
     fr: "aucune stone n'attend un humain",
   },
   "escalations.noReport": {
-    en: "No report was written for this stone. Phase 1 records the attempt count in provenance and nothing else — open the stone to read its last failure from the run log.",
-    fr: "Aucun rapport n'a été écrit pour cette stone. La phase 1 note le nombre de tentatives dans la provenance et rien d'autre — ouvrez la stone pour lire son dernier échec dans le journal d'exécution.",
+    en: "No report was written for this stone. Phase 1 records the attempt count in provenance and nothing else: open the stone to read its last failure from the run log.",
+    fr: "Aucun rapport n'a été écrit pour cette stone. La phase 1 note le nombre de tentatives dans la provenance et rien d'autre : ouvrez la stone pour lire son dernier échec dans le journal d'exécution.",
   },
   "escalations.notWired": {
     en: "“{action}” is not wired yet. It will call {call}.",
@@ -275,12 +275,12 @@ export const DICT: Record<string, Entry> = {
     fr: "record_run + une nouvelle tentative du coder (le budget repart à 3)",
   },
   "escalations.wiringAmend": {
-    en: "amend_stone — the old stone retires, the new one starts as a draft",
-    fr: "amend_stone — l'ancienne stone passe retired, la nouvelle démarre en draft",
+    en: "amend_stone: the old stone retires, the new one starts as a draft",
+    fr: "amend_stone : l'ancienne stone passe retired, la nouvelle démarre en draft",
   },
   "escalations.wiringRetire": {
-    en: "retire_stone — the stone leaves the suite and stops being verified",
-    fr: "retire_stone — la stone quitte la suite et n'est plus vérifiée",
+    en: "retire_stone: the stone leaves the suite and stops being verified",
+    fr: "retire_stone : la stone quitte la suite et n'est plus vérifiée",
   },
 
   /* ---------------------------------------------------------------- runs */
@@ -338,15 +338,15 @@ export const DICT: Record<string, Entry> = {
   },
   "drawer.desktopOnly": { en: "available in the desktop build", fr: "disponible dans la version desktop" },
   "drawer.redNoReport": {
-    en: "Red on {when} — no warden report was stored. The run log holds the Playwright output.",
-    fr: "Rouge le {when} — aucun rapport du warden n'a été conservé. Le journal d'exécution garde la sortie Playwright.",
+    en: "Red on {when}: no warden report was stored. The run log holds the Playwright output.",
+    fr: "Rouge le {when} : aucun rapport du warden n'a été conservé. Le journal d'exécution garde la sortie Playwright.",
   },
 
   /* --------------------------------------------------------------- shell */
   "shell.openRepoTitle": { en: "Open a repository", fr: "Ouvrir un dépôt" },
   "shell.openRepoHint": {
-    en: "Cairn has no database — the repository is the state. Pick a folder that owns a .cairn/ directory.",
-    fr: "Cairn n'a pas de base de données — le dépôt est l'état. Choisissez un dossier qui possède un répertoire .cairn/.",
+    en: "Cairn has no database: the repository is the state. Pick a folder that owns a .cairn/ directory.",
+    fr: "Cairn n'a pas de base de données : le dépôt est l'état. Choisissez un dossier qui possède un répertoire .cairn/.",
   },
   "shell.openRepo": { en: "Open repo…", fr: "Ouvrir un dépôt…" },
   "shell.reading": { en: "Reading the cairn", fr: "Lecture du cairn" },

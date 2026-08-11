@@ -17,7 +17,7 @@ guard-rail is not in the conversation.
 ## Register it in Claude Code
 
 ```sh
-claude mcp add cairn -- npx cairn-mcp --dir /path/to/project
+claude mcp add cairn -- npx @cairn/mcp --dir /path/to/project
 ```
 
 `--dir` names the project whose cairn is served — the directory holding

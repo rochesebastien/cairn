@@ -1,8 +1,15 @@
-import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { parseStoneFile, type ParsedStoneFile } from "@cairn/core";
+import {
+  parseRunLedger,
+  parseStoneFile,
+  serializeRunEvent,
+  type ParsedStoneFile,
+  type RunEvent,
+  type RunEventInput,
+} from "@cairn/core";
 import { memoryIo } from "../src/io.js";
 import { run } from "../src/program.js";
 
@@ -72,6 +79,10 @@ export interface TempProject {
   stone(id: string): Promise<ParsedStoneFile>;
   /** Write a proof file for a stone id and return its POSIX relative path. */
   proof(id: string, content?: string): Promise<string>;
+  /** Read a stone's run ledger. An absent ledger reads as no events. */
+  ledger(id: string): Promise<RunEvent[]>;
+  /** Hand-write a run ledger, to set up histories no run could produce here. */
+  writeLedger(id: string, events: RunEventInput[]): Promise<void>;
 }
 
 export async function makeProject(): Promise<TempProject> {
@@ -98,6 +109,21 @@ export async function makeProject(): Promise<TempProject> {
     async proof(id, content = "// proof\n") {
       await project.write(`.cairn/proofs/${id}.spec.ts`, content);
       return `.cairn/proofs/${id}.spec.ts`;
+    },
+    async ledger(id) {
+      try {
+        return parseRunLedger(await project.read(".cairn", "runs", `${id}.jsonl`)).events;
+      } catch {
+        return [];
+      }
+    },
+    async writeLedger(id, events) {
+      await mkdir(path.join(root, ".cairn", "runs"), { recursive: true });
+      await writeFile(
+        path.join(root, ".cairn", "runs", `${id}.jsonl`),
+        events.map(serializeRunEvent).join(""),
+        "utf8",
+      );
     },
   };
 

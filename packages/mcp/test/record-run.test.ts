@@ -4,8 +4,15 @@
  * @cairn/core and nowhere else.
  */
 
+import { readFile } from "node:fs/promises";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { escalate, hashProof, serializeStone } from "@cairn/core";
+import {
+  escalate,
+  hashProof,
+  parseRunLedger,
+  serializeStone,
+  type RunAttemptEvent,
+} from "@cairn/core";
 import { connect, makeCairn, seedDraft, type Session, type TempCairn } from "./helpers.js";
 
 interface RunPayload {
@@ -168,6 +175,55 @@ describe("record_run", () => {
     expect(payload.changed).toBe(false);
     expect(payload.to).toBe("retired");
     expect(payload.reason).toBe("stone is retired");
+  });
+
+  /** The run ledger `cairn verify` writes, written by the MCP tool as well. */
+  async function ledger(id: string): Promise<RunAttemptEvent[]> {
+    try {
+      const content = await readFile(project.path(".cairn", "runs", `${id}.jsonl`), "utf8");
+      return parseRunLedger(content).events.filter(
+        (event): event is RunAttemptEvent => event.kind === "run",
+      );
+    } catch {
+      return [];
+    }
+  }
+
+  it("appends one ledger line per run, numbered and marked as coming from MCP", async () => {
+    const id = await seedWithProof();
+
+    await session.call("record_run", { stoneId: id, result: "red" });
+    const { payload } = await session.call<RunPayload & { attempt: number }>("record_run", {
+      stoneId: id,
+      result: "green",
+    });
+
+    expect(payload.attempt).toBe(2);
+    const events = await ledger(id);
+    expect(events.map((event) => event.attempt)).toEqual([1, 2]);
+    expect(events.map((event) => event.result)).toEqual(["red", "green"]);
+    expect(events.every((event) => event.source === "mcp")).toBe(true);
+    // The proof did not move between the two attempts, and the ledger says so.
+    expect(events[0]?.proofHash).toBe(hashProof(PROOF));
+    expect(events[1]?.proofEdited).toBe(false);
+  });
+
+  it("records the tokens and the proof edit it is told about", async () => {
+    const id = await seedWithProof();
+
+    await session.call("record_run", {
+      stoneId: id,
+      result: "green",
+      runMeta: { tokens: 4200, proofEdited: true },
+    });
+
+    expect(await ledger(id)).toMatchObject([{ attempt: 1, tokens: 4200, proofEdited: true }]);
+  });
+
+  it("does not record a missing proof: that is not a run", async () => {
+    const id = await seedWithProof();
+    await session.call("record_run", { stoneId: id, result: "missing" });
+    expect(await ledger(id)).toEqual([]);
   });
 
   it("reports an unknown stone id instead of inventing one", async () => {

@@ -1,6 +1,7 @@
 import { copyFile, mkdir } from "node:fs/promises";
 import path from "node:path";
 import {
+  attemptsFrom,
   createAmendment,
   defaultProofPath,
   formatViolations,
@@ -9,12 +10,16 @@ import {
   normalizeUlid,
   resolveProofPath,
   toPosixPath,
+  tokensFrom,
   writeStoneToDir,
+  type RunEvent,
+  type Stone,
 } from "@cairn/core";
 import pc from "picocolors";
 import { CliError, EXIT, usageError } from "../errors.js";
 import { printInfo, printJson, printOk, printViolations, printWarn, shortId } from "../format.js";
 import type { Io } from "../io.js";
+import { appendToLedger, readLedger } from "../ledger.js";
 import { fileExists, loadProject, readOneStone, requireCairn } from "../project.js";
 import { lintContent, resolveContent, type ContentFlags } from "../stone-input.js";
 import { resolveProofField } from "./add.js";
@@ -89,10 +94,31 @@ export async function amendCommand(io: Io, id: string, options: AmendOptions = {
 
   const body = content.intent || oldFile.body;
 
+  // The run ledger stays out of git; retiring a stone is the last chance to
+  // keep what it counted, so its summary is folded into the provenance that
+  // *is* committed. An explicit provenance already on the stone wins.
+  const ledger = await readLedger(project, oldStone.id);
+  const retiredOld = stampProvenance(amendment.retiredOld, ledger.events);
+
   // The new draft is written first: if anything fails, the old stone is still
   // the live one and the cairn stays consistent.
   const newPath = await writeStoneToDir(project.stonesDir, amendment.newStone, body);
-  await writeStoneToDir(project.stonesDir, amendment.retiredOld, oldFile.body);
+  await writeStoneToDir(project.stonesDir, retiredOld, oldFile.body);
+
+  // Only a stone that has a ledger gets the `amend` line: a stone that was
+  // never run has nothing to measure, and an empty ledger file would say
+  // nothing at all.
+  const appended =
+    ledger.events.length > 0
+      ? await appendToLedger(project, oldStone.id, {
+          kind: "amend",
+          at: new Date().toISOString(),
+          amendedBy: amendment.newStone.id,
+        })
+      : {};
+  const ledgerWarnings = [ledger.warning, appended.warning].filter(
+    (warning): warning is string => Boolean(warning),
+  );
 
   let carried: string | null = null;
   if (options.carryProof) {
@@ -103,13 +129,16 @@ export async function amendCommand(io: Io, id: string, options: AmendOptions = {
     printJson(io, {
       ok: true,
       stone: { ...amendment.newStone, body },
-      retired: amendment.retiredOld,
+      retired: retiredOld,
       path: toPosixPath(path.relative(project.root, newPath)),
       ...(carried ? { carriedProof: carried } : {}),
       ...(violations.length > 0 ? { forcedViolations: violations } : {}),
+      ...(ledgerWarnings.length > 0 ? { ledgerWarnings } : {}),
     });
     return EXIT.OK;
   }
+
+  for (const warning of ledgerWarnings) printWarn(io, warning);
 
   if (violations.length > 0) {
     printWarn(io, `${violations.length} lint violation(s) forced into the cairn:`);
@@ -127,6 +156,29 @@ export async function amendCommand(io: Io, id: string, options: AmendOptions = {
   if (carried) printInfo(io, `carried ${carried}`);
 
   return EXIT.OK;
+}
+
+/**
+ * Fold what the run ledger counted into a retiring stone's provenance. What
+ * a human (or an agent) already wrote there is never overwritten: the flags
+ * and `cairn escalate` are the intentional record, the ledger only fills a
+ * gap that would otherwise be lost with the runs/ directory.
+ */
+function stampProvenance(stone: Stone, events: readonly RunEvent[]): Stone {
+  if (stone.provenance.attempts !== undefined) return stone;
+
+  const attempts = attemptsFrom(events);
+  if (attempts === 0) return stone;
+
+  const tokens = tokensFrom(events);
+  return {
+    ...stone,
+    provenance: {
+      ...stone.provenance,
+      attempts,
+      ...(stone.provenance.tokens === undefined && tokens !== null ? { tokens } : {}),
+    },
+  };
 }
 
 /** Copy the old proof next to the new stone so it can be reworked in place. */

@@ -8,6 +8,7 @@ import {
   shortHash,
   writeStone,
   type IntegrityReport,
+  type RunResult,
   type Stone,
   type StoneFile,
   type StoneStatus,
@@ -26,6 +27,7 @@ import {
 } from "../format.js";
 import { currentCommit } from "../git.js";
 import type { Io } from "../io.js";
+import { recordRun } from "../ledger.js";
 import {
   emptyReport,
   runProofs,
@@ -171,6 +173,9 @@ export async function verifyCommand(
 
   const rows: VerifyRow[] = [];
   const runnableIds = new Set(runnable.map((file) => file.stone.id));
+  // A ledger write that fails is reported, never fatal: the measurement is
+  // evidence, the cairn is the registry.
+  const ledgerWarnings: string[] = [];
   let noResult = 0;
 
   for (const file of selected) {
@@ -206,18 +211,34 @@ export async function verifyCommand(
       continue;
     }
 
-    const result: VerifyResult = specStatus === "passed" ? "green" : "red";
+    // Narrower than VerifyResult on purpose: "missing" never reaches here,
+    // and the ledger only ever records a proof that actually ran.
+    const result: RunResult = specStatus === "passed" ? "green" : "red";
     const proofPath = resolveProofPath(project.root, stone.proof as string);
-    const content = result === "green" ? await readFileOrNull(proofPath) : null;
+    // Hashed on red too: the ledger records which proof was run, not only
+    // which one was green — that is what tells a proof edit from a code fix.
+    const content = await readFileOrNull(proofPath);
+    const proofHash = content !== null ? hashProof(content) : undefined;
 
     const applied = applyVerifyResult(stone, result, {
       at,
       ...(commit ? { commit } : {}),
-      ...(content !== null ? { proofHash: hashProof(content) } : {}),
+      ...(result === "green" && proofHash !== undefined ? { proofHash } : {}),
     });
 
     rows.push(makeRow(stone, applied.stone.status, result, applied.changed, applied.reason, integrity));
     await persist(project, file, applied.stone, options);
+
+    if (!options.dryRun) {
+      const recorded = await recordRun(project, stone.id, {
+        result,
+        at,
+        ...(commit ? { commit } : {}),
+        ...(proofHash !== undefined ? { proofHash } : {}),
+        source: "verify",
+      });
+      if (recorded.warning) ledgerWarnings.push(recorded.warning);
+    }
   }
 
   /* ------------------------------------------------------------- report */
@@ -241,6 +262,7 @@ export async function verifyCommand(
       dryRun: Boolean(options.dryRun),
       results: rows,
       ...(skipped.length > 0 ? { unreadable: skipped } : {}),
+      ...(ledgerWarnings.length > 0 ? { ledgerWarnings } : {}),
       integrity: options.integrity
         ? [...integrityReports.entries()].map(([id, entry]) => ({ id, ...entry }))
         : undefined,
@@ -256,6 +278,8 @@ export async function verifyCommand(
     });
     return exitCode;
   }
+
+  for (const warning of ledgerWarnings) printWarn(io, warning);
 
   for (const row of rows) {
     const move =

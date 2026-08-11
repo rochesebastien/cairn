@@ -87,7 +87,7 @@ const SEEDS: Seed[] = [
       acceptance: [
         "A shopper who is not signed in can reach the payment step from the cart.",
         "The shopper is never asked to create a password to finish the order.",
-        "After paying, the shopper is offered — not required — to keep an account with the address they just used.",
+        "After paying, the shopper is offered, not required, to keep an account with the address they just used.",
       ],
       provenance: {
         request:
@@ -112,7 +112,7 @@ const SEEDS: Seed[] = [
       acceptance: [
         "A shopper who is not signed in can reach the payment step from the cart.",
         "The shopper is never asked to create a password to finish the order.",
-        "After paying, the shopper is offered — not required — to keep an account with the address they just used.",
+        "After paying, the shopper is offered, not required, to keep an account with the address they just used.",
         "Declining the offer still leaves the shopper on the confirmation, with the order number visible.",
       ],
       provenance: {
@@ -266,7 +266,7 @@ const SEEDS: Seed[] = [
       lastGreen: null,
       proof: null,
     },
-    body: "Removing should be as cheap as adding, and reversible — the undo is what makes people comfortable enough to try.",
+    body: "Removing should be as cheap as adding, and reversible: the undo is what makes people comfortable enough to try.",
   },
   {
     stone: {
@@ -337,7 +337,7 @@ const SEEDS: Seed[] = [
       lastGreen: null,
       proof: ".cairn/proofs/01KSZTMBM0CAFR4N0X2A7RMAGE.spec.ts",
     },
-    body: "An invoice is a document someone else will read — the accountant, not the shopper. It has to be right rather than pretty.",
+    body: "An invoice is a document someone else will read: the accountant, not the shopper. It has to be right rather than pretty.",
   },
   {
     stone: {
@@ -447,7 +447,7 @@ function proofSource(stone: Stone): string {
     )
     .join("\n\n");
 
-  return `// Proof for ${stone.id} — ${stone.title}
+  return `// Proof for ${stone.id}: ${stone.title}
 // Written by cairn-warden, blind to the implementation. Replayed in CI without
 // an LLM. Do not edit by hand: amend the stone instead.
 import { expect, test } from "@playwright/test";
@@ -474,10 +474,10 @@ const REPORTS: Record<string, FailureReport> = {
     summary:
       "The signed-out cart is replaced by the saved cart instead of being merged with it. Three attempts, same failure each time.",
     expected:
-      "After signing in, the cart holds the two items added while signed out plus the one item saved from the earlier visit — three lines, no quantity doubled.",
+      "After signing in, the cart holds the two items added while signed out plus the one item saved from the earlier visit: three lines, no quantity doubled.",
     actual:
       "After signing in, the cart holds only the one item saved from the earlier visit. The two items added while signed out are gone.",
-    step: 'expect(cart).toHaveCount(3) — received 1\n  at .cairn/proofs/01KRNZNNW0DRBKNFK6PWAMNJT3.spec.ts:34',
+    step: 'expect(cart).toHaveCount(3), received 1\n  at .cairn/proofs/01KRNZNNW0DRBKNFK6PWAMNJT3.spec.ts:34',
     trace: ".cairn/traces/01KRNZNNW0DRBKNFK6PWAMNJT3-attempt-3.zip",
     diff: `--- a/src/checkout/session.ts
 +++ b/src/checkout/session.ts
@@ -599,7 +599,7 @@ const VERIFY_TRANSCRIPT: string[] = [
   "",
   "  2 failed, 4 passed, 5 skipped (18.6s)",
   "",
-  "cairn: 2 stones went red — 01KRGQEC80 broke first",
+  "cairn: 2 stones went red, 01KRGQEC80 broke first",
 ];
 
 /* ------------------------------------------------------------ the source */
