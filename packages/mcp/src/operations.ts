@@ -1,8 +1,8 @@
 /**
  * The operations behind the MCP tools.
  *
- * Every one of them is a thin wrapper over @cairn/core (the domain) and the
- * helpers @cairn/cli already exports (project loading, stone reading, the
+ * Every one of them is a thin wrapper over @usecairn/core (the domain) and the
+ * helpers @usecairn/cli already exports (project loading, stone reading, the
  * `add`/`amend` command implementations). There is **no new domain logic
  * here**: statuses move through core's `applyVerifyResult` / `transition`,
  * acceptance is judged by core's `lintAcceptance`, and stones are written by
@@ -24,7 +24,7 @@ import {
   type StoneStatus,
   type Violation,
   type VerifyResult,
-} from "@cairn/core";
+} from "@usecairn/core";
 import {
   addCommand,
   amendCommand,
@@ -42,7 +42,7 @@ import {
   type Io,
   type Project,
   type StatusCounts,
-} from "@cairn/cli";
+} from "@usecairn/cli";
 
 /* --------------------------------------------------------------- plumbing */
 

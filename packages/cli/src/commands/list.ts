@@ -1,5 +1,5 @@
 import path from "node:path";
-import { STONE_STATUSES, type Stone, type StoneFile, type StoneStatus } from "@cairn/core";
+import { STONE_STATUSES, type Stone, type StoneFile, type StoneStatus } from "@usecairn/core";
 import pc from "picocolors";
 import { EXIT, usageError } from "../errors.js";
 import {

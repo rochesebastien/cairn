@@ -122,9 +122,9 @@ Full walkthrough of one feature, end to end, with the mason/warden loop:
 
 | Path | What it is |
 | --- | --- |
-| [`packages/core`](../packages/core) | `@cairn/core` — the domain. Stone schema (Zod), frontmatter files, the acceptance lint, the frozen state machine, proof integrity hashing. No I/O policy, no CLI. |
-| [`packages/cli`](../packages/cli) | `@cairn/cli` — the `cairn` command: `init`, `add`, `amend`, `list`, `show`, `status`, `metrics`, `escalate`, `verify`. Everything is exported, so other surfaces call the same code paths instead of scraping output. |
-| [`packages/mcp`](../packages/mcp) | `@cairn/mcp` — the cairn over MCP (stdio), eight frozen tools and three `cairn://` resources. The acceptance guard-rail is enforced server-side; there is no `force`. |
+| [`packages/core`](../packages/core) | `@usecairn/core` — the domain. Stone schema (Zod), frontmatter files, the acceptance lint, the frozen state machine, proof integrity hashing. No I/O policy, no CLI. |
+| [`packages/cli`](../packages/cli) | `@usecairn/cli` — the `cairn` command: `init`, `add`, `amend`, `list`, `show`, `status`, `metrics`, `escalate`, `verify`. Everything is exported, so other surfaces call the same code paths instead of scraping output. |
+| [`packages/mcp`](../packages/mcp) | `@usecairn/mcp` — the cairn over MCP (stdio), eight frozen tools and three `cairn://` resources. The acceptance guard-rail is enforced server-side; there is no `force`. |
 | [`apps/desktop`](../apps/desktop) | `cairn-desktop` — the Tauri 2 + React review app: read the stones, review the drafts, watch the proofs. Runs in a plain browser against a demo cairn with no Rust and no repository. |
 | [`.claude/skills`](../.claude/skills) | The three agent skills: [`cairn-mason`](../.claude/skills/cairn-mason/SKILL.md), [`cairn-warden`](../.claude/skills/cairn-warden/SKILL.md), [`cairn-triage`](../.claude/skills/cairn-triage/SKILL.md). Mirrored for Codex ([`.codex/skills`](../.codex/skills)) and Cursor ([`.cursor/rules`](../.cursor/rules)). They belong in the *target* project; they live here to be versioned with the CLI they call. |
 | [`docs/orchestration.md`](orchestration.md) | The loop, the permission model that makes both blindnesses real (deny rules, subagent tools, OS file modes), the integrity hook. |
@@ -144,7 +144,7 @@ pnpm -r test
 ## Agents: prefer the MCP server over parsing CLI output
 
 ```sh
-claude mcp add cairn -- npx @cairn/mcp --dir /path/to/project
+claude mcp add cairn -- npx @usecairn/mcp --dir /path/to/project
 ```
 
 `list_stones`, `get_stone`, `create_draft`, `amend_stone`, `retire_stone`,

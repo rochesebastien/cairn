@@ -1,5 +1,5 @@
 {
-  "name": "@cairn/mcp",
+  "name": "@usecairn/mcp",
   "version": "0.1.0",
   "description": "MCP server exposing the cairn to agents: stones, drafts, amendments, proof runs and the acceptance lint.",
   "keywords": [
@@ -49,8 +49,8 @@
     "typecheck": "tsc -p tsconfig.typecheck.json"
   },
   "dependencies": {
-    "@cairn/cli": "workspace:*",
-    "@cairn/core": "workspace:*",
+    "@usecairn/cli": "workspace:*",
+    "@usecairn/core": "workspace:*",
     "@modelcontextprotocol/sdk": "^1.30.0",
     "zod": "^3.25.76"
   },

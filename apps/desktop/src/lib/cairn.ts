@@ -10,11 +10,11 @@
  *     runs in a plain browser (`pnpm dev`), so every screen is reviewable
  *     without Tauri or a real repository.
  *
- * Stone files are parsed with @cairn/core's pure parser (`parseStoneFile`), the
+ * Stone files are parsed with @usecairn/core's pure parser (`parseStoneFile`), the
  * same code the CLI and the MCP server use. There is no second parser here.
  */
 
-import type { Stone, StoneStatus } from "@cairn/core/schema";
+import type { Stone, StoneStatus } from "@usecairn/core/schema";
 
 export type { Stone, StoneStatus };
 

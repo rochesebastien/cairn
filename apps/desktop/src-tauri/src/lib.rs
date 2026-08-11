@@ -5,7 +5,7 @@
 //! * `pick_repo`   — the folder picker (the repository *is* the state).
 //! * `read_cairn`  — read `.cairn/` in one pass; stone files come back as raw
 //!                   text and are parsed on the TypeScript side with
-//!                   @cairn/core, so there is exactly one parser in the repo.
+//!                   @usecairn/core, so there is exactly one parser in the repo.
 //! * `read_proof`  — read one proof file, read-only, scoped to `.cairn/`.
 //! * `run_verify`  — spawn the `cairn` CLI and stream its output as events.
 //! * `watch_cairn` — a debounced `notify` watcher emitting `cairn-changed`.

@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { hashProof, type RunAttemptEvent, type RunEvent } from "@cairn/core";
+import { hashProof, type RunAttemptEvent, type RunEvent } from "@usecairn/core";
 import { cli, makeProject, seedStone, withStub, type TempProject } from "./helpers.js";
 
 /**

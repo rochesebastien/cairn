@@ -6,7 +6,7 @@ import {
   normalizeUlid,
   tokensFrom,
   writeStone,
-} from "@cairn/core";
+} from "@usecairn/core";
 import pc from "picocolors";
 import { CliError, EXIT } from "../errors.js";
 import { printInfo, printJson, printOk, printWarn, shortId } from "../format.js";

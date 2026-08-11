@@ -5,7 +5,7 @@ import {
   normalizeUlid,
   resolveProofPath,
   shortHash,
-} from "@cairn/core";
+} from "@usecairn/core";
 import pc from "picocolors";
 import { EXIT } from "../errors.js";
 import { paintStatus, printJson, relativeDate, statusMark } from "../format.js";

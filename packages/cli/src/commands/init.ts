@@ -1,6 +1,6 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { DEFAULT_PROOFS_DIR, DEFAULT_STONES_DIR } from "@cairn/core";
+import { DEFAULT_PROOFS_DIR, DEFAULT_STONES_DIR } from "@usecairn/core";
 import { printInfo, printJson, printOk } from "../format.js";
 import type { Io } from "../io.js";
 import { CAIRN_DIR, fileExists, loadProject } from "../project.js";
@@ -28,9 +28,9 @@ const CONFIG_TEMPLATE = `/**
  * Cairn configuration.
  *
  * Loaded by \`cairn verify\` through jiti, so TypeScript needs no build step.
- * Add \`/** @type {import("@cairn/core").CairnConfigInput} *\\/\` above the
+ * Add \`/** @type {import("@usecairn/core").CairnConfigInput} *\\/\` above the
  * export if you want editor completion inside a project that depends on
- * @cairn/core.
+ * @usecairn/core.
  */
 export default {
   /**

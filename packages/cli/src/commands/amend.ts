@@ -14,7 +14,7 @@ import {
   writeStoneToDir,
   type RunEvent,
   type Stone,
-} from "@cairn/core";
+} from "@usecairn/core";
 import pc from "picocolors";
 import { CliError, EXIT, usageError } from "../errors.js";
 import { printInfo, printJson, printOk, printViolations, printWarn, shortId } from "../format.js";

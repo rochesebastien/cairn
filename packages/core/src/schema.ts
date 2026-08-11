@@ -3,7 +3,7 @@ import { ULID_PATTERN } from "./ulid.js";
 
 /**
  * Zod is the single source of truth for the Cairn domain: the CLI, the MCP
- * server and the desktop app all import these schemas from @cairn/core.
+ * server and the desktop app all import these schemas from @usecairn/core.
  */
 
 export const ulidSchema = z

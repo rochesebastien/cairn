@@ -1,7 +1,7 @@
 /**
  * `record_run` is the only tool that moves a stone's status, and it must move
  * it exactly the way `cairn verify` does — the state machine lives in
- * @cairn/core and nowhere else.
+ * @usecairn/core and nowhere else.
  */
 
 import { readFile } from "node:fs/promises";
@@ -12,7 +12,7 @@ import {
   parseRunLedger,
   serializeStone,
   type RunAttemptEvent,
-} from "@cairn/core";
+} from "@usecairn/core";
 import { connect, makeCairn, seedDraft, type Session, type TempCairn } from "./helpers.js";
 
 interface RunPayload {

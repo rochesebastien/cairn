@@ -1,10 +1,10 @@
-# @cairn/mcp
+# @usecairn/mcp
 
 The cairn of a project, served over the [Model Context Protocol](https://modelcontextprotocol.io).
 
 `cairn-mcp` is a stdio MCP server that exposes one target project's registry —
 its stones, their acceptance criteria, their proofs — as tools and resources.
-It wraps [`@cairn/core`](../core) and the helpers [`@cairn/cli`](../cli) already
+It wraps [`@usecairn/core`](../core) and the helpers [`@usecairn/cli`](../cli) already
 exports; it holds **no domain logic of its own**. Statuses move through core's
 state machine, acceptance is judged by core's lint, stones are written by core's
 writer. The server is a door, not a second implementation.
@@ -17,7 +17,7 @@ guard-rail is not in the conversation.
 ## Register it in Claude Code
 
 ```sh
-claude mcp add cairn -- npx @cairn/mcp --dir /path/to/project
+claude mcp add cairn -- npx @usecairn/mcp --dir /path/to/project
 ```
 
 `--dir` names the project whose cairn is served — the directory holding
@@ -144,9 +144,9 @@ And two things the server will not do, whatever it is asked:
 ## Development
 
 ```sh
-pnpm --filter @cairn/mcp build
-pnpm --filter @cairn/mcp test
-pnpm --filter @cairn/mcp typecheck
+pnpm --filter @usecairn/mcp build
+pnpm --filter @usecairn/mcp test
+pnpm --filter @usecairn/mcp typecheck
 ```
 
 The tests drive the real server through the SDK's `InMemoryTransport` and a real

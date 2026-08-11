@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import type { Stone } from "@cairn/core";
+import type { Stone } from "@usecairn/core";
 import { cli, makeProject, seedStone, withStub, type TempProject } from "./helpers.js";
 
 interface VerifyJson {
@@ -66,7 +66,7 @@ describe("cairn verify", () => {
 
     // The recorded hash is the hash of the proof that was green.
     const proof = await readFile(project.path(".cairn", "proofs", `${id}.spec.ts`), "utf8");
-    const { hashProof } = await import("@cairn/core");
+    const { hashProof } = await import("@usecairn/core");
     expect(stone.lastGreen?.proofHash).toBe(hashProof(proof));
   });
 
@@ -410,7 +410,7 @@ describe("cairn verify", () => {
     const id = await seedProvable();
     const body = "# Intent\n\nThe shopper must never be surprised by the total.";
     const { stone } = await project.stone(id);
-    const { serializeStone } = await import("@cairn/core");
+    const { serializeStone } = await import("@usecairn/core");
     await project.write(`.cairn/stones/${id}.md`, serializeStone(stone, body));
 
     stub.restore();

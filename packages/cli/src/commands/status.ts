@@ -1,4 +1,4 @@
-import { STONE_STATUSES, type StoneFile, type StoneStatus } from "@cairn/core";
+import { STONE_STATUSES, type StoneFile, type StoneStatus } from "@usecairn/core";
 import pc from "picocolors";
 import { EXIT } from "../errors.js";
 import {
