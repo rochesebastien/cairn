@@ -9,7 +9,7 @@ import {
   type ParsedStoneFile,
   type RunEvent,
   type RunEventInput,
-} from "@cairn/core";
+} from "@usecairn/core";
 import { memoryIo } from "../src/io.js";
 import { run } from "../src/program.js";
 

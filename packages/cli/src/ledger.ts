@@ -11,13 +11,13 @@ import {
   type RunEventInput,
   type RunResult,
   type RunSource,
-} from "@cairn/core";
+} from "@usecairn/core";
 import type { Project } from "./project.js";
 
 /**
  * The CLI side of the measurement ledger (`.cairn/runs/<ulid>.jsonl`).
  *
- * The format, the numbering and the aggregations live in @cairn/core; this is
+ * The format, the numbering and the aggregations live in @usecairn/core; this is
  * the project-level glue plus one policy: **a ledger failure never fails the
  * command that produced it**. The ledger is evidence, the cairn is the
  * registry. Losing a line is worth a warning, not a red build — so every

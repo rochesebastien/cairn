@@ -13,7 +13,7 @@ import {
  * for the browser (the desktop app reads files through Tauri, then parses them
  * with exactly the same code the CLI uses). Path helpers and fs helpers live in
  * `stone-file.ts`, which re-exports everything below — the public API of
- * @cairn/core is unchanged.
+ * @usecairn/core is unchanged.
  */
 
 export const STONE_FILE_EXTENSION = ".md";

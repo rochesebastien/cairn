@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { isUlid, type Stone } from "@cairn/core";
+import { isUlid, type Stone } from "@usecairn/core";
 import { cli, makeProject, seedStone, type TempProject } from "./helpers.js";
 
 /**

@@ -3,7 +3,7 @@
  *
  * It exposes the cairn of one target project (`--dir` / `CAIRN_DIR`) over the
  * Model Context Protocol: eight tools and three resources, all of them thin
- * wrappers over @cairn/core and the helpers @cairn/cli exports.
+ * wrappers over @usecairn/core and the helpers @usecairn/cli exports.
  *
  * The one rule that lives *here* rather than in a skill prompt: `create_draft`
  * and `amend_stone` run the acceptance lint and refuse when it fails. There is
@@ -18,8 +18,8 @@ import {
   STONE_STATUSES,
   StoneFileError,
   stoneStatusSchema,
-} from "@cairn/core";
-import { CliError, EXIT } from "@cairn/cli";
+} from "@usecairn/core";
+import { CliError, EXIT } from "@usecairn/cli";
 import { z } from "zod";
 import {
   amendStoneOp,

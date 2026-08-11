@@ -56,7 +56,7 @@ source `demo` so nobody mistakes it for a repository.
 
 ## Parsing
 
-Stone files are parsed with `@cairn/core`'s pure parser, imported through the
-browser-safe subpath `@cairn/core/stone-parse` (schema via `@cairn/core/schema`).
+Stone files are parsed with `@usecairn/core`'s pure parser, imported through the
+browser-safe subpath `@usecairn/core/stone-parse` (schema via `@usecairn/core/schema`).
 There is no second parser in this app, and no `node:` builtin ends up in the
 bundle.

@@ -134,12 +134,12 @@ jobs:
       - name: Install workspace dependencies
         run: pnpm install --frozen-lockfile
 
-      # `apps/desktop` importe `@cairn/core` par ses points d'entrée publiés
+      # `apps/desktop` importe `@usecairn/core` par ses points d'entrée publiés
       # (`dist/index.js`, `dist/*.d.ts`), et `dist/` n'est pas versionné. Sans
       # cette étape, le `tsc --noEmit && vite build` déclenché par
-      # `beforeBuildCommand` échoue à résoudre `@cairn/core/schema` &co.
-      - name: Build workspace dependencies (@cairn/core)
-        run: pnpm --filter @cairn/core build
+      # `beforeBuildCommand` échoue à résoudre `@usecairn/core/schema` &co.
+      - name: Build workspace dependencies (@usecairn/core)
+        run: pnpm --filter @usecairn/core build
 
       - name: Build app & publish release
         uses: tauri-apps/tauri-action@84b9d35b5fc46c1e45415bdb6144030364f7ebc5 # v0.6.2

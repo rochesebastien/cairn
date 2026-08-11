@@ -1,5 +1,5 @@
 /**
- * @cairn/cli — the `cairn` command.
+ * @usecairn/cli — the `cairn` command.
  *
  * Everything is exported so the MCP server and the desktop app can call the
  * same code paths the CLI uses, instead of shelling out and parsing text.

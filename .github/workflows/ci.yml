@@ -1,7 +1,7 @@
 # CI for the Cairn monorepo itself.
 #
-# Two jobs. `verify` keeps the workspace honest — @cairn/core, @cairn/cli,
-# @cairn/mcp and cairn-desktop: build, typecheck, test. `cairn` is the ratchet
+# Two jobs. `verify` keeps the workspace honest — @usecairn/core, @usecairn/cli,
+# @usecairn/mcp and cairn-desktop: build, typecheck, test. `cairn` is the ratchet
 # — `cairn verify --all --proven-only` — running on the first dogfooded
 # surface, apps/desktop, through the same reusable workflow that target
 # projects copy from packages/cli/templates/ci/ (Phase 6: Cairn eats its own
@@ -58,7 +58,7 @@ jobs:
       - name: Build
         run: pnpm -r build
 
-      # Typecheck runs after build: @cairn/cli resolves @cairn/core through its
+      # Typecheck runs after build: @usecairn/cli resolves @usecairn/core through its
       # published types (dist/index.d.ts), which only exist once core is built.
       - name: Typecheck
         run: pnpm -r typecheck
@@ -94,7 +94,7 @@ jobs:
     with:
       working-directory: apps/desktop
       # The trailing re-install is not a mistake: the first install runs before
-      # @cairn/cli is built, so pnpm cannot create the `cairn` bin link
+      # @usecairn/cli is built, so pnpm cannot create the `cairn` bin link
       # (dist/bin.js does not exist yet) and `npx cairn` would find nothing.
       # Re-running install after the build recreates the link in seconds.
       install-command: "corepack enable && pnpm install --frozen-lockfile && pnpm -r build && pnpm install --frozen-lockfile"

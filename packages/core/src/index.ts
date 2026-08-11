@@ -1,5 +1,5 @@
 /**
- * @cairn/core — the domain of Cairn.
+ * @usecairn/core — the domain of Cairn.
  *
  * The cairn is the registry in `.cairn/`; a stone is one feature; a proof is
  * the deterministic Playwright test that proves it. Everything else in the

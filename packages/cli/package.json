@@ -1,5 +1,5 @@
 {
-  "name": "@cairn/cli",
+  "name": "@usecairn/cli",
   "version": "0.1.0",
   "description": "The cairn command line: raise stones, run proofs, keep the registry honest.",
   "keywords": [
@@ -50,7 +50,7 @@
     "typecheck": "tsc -p tsconfig.typecheck.json"
   },
   "dependencies": {
-    "@cairn/core": "workspace:*",
+    "@usecairn/core": "workspace:*",
     "commander": "^12.1.0",
     "jiti": "^2.4.2",
     "picocolors": "^1.1.1",

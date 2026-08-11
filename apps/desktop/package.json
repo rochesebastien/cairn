@@ -15,7 +15,7 @@
     "tauri:build": "tauri build"
   },
   "dependencies": {
-    "@cairn/core": "workspace:*",
+    "@usecairn/core": "workspace:*",
     "@fontsource-variable/geist-mono": "^5.3.0",
     "@fontsource-variable/stack-sans-headline": "^5.3.0",
     "@fontsource-variable/stack-sans-text": "^5.3.0",
@@ -28,7 +28,7 @@
     "react-dom": "^18.3.1"
   },
   "devDependencies": {
-    "@cairn/cli": "workspace:*",
+    "@usecairn/cli": "workspace:*",
     "@playwright/test": "1.62.1",
     "@tauri-apps/cli": "^2.11.4",
     "@types/react": "^18.3.12",

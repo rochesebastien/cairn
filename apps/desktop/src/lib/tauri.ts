@@ -6,13 +6,13 @@
  * stdout as events), and `.cairn/` is watched with `notify` so the app
  * refreshes when the warden writes.
  *
- * The stone files come back as raw text and are parsed here with @cairn/core's
+ * The stone files come back as raw text and are parsed here with @usecairn/core's
  * `parseStoneFile` — same parser as the CLI and the MCP server.
  */
 
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
-import { parseStoneFile } from "@cairn/core/stone-parse";
+import { parseStoneFile } from "@usecairn/core/stone-parse";
 import type {
   CairnConfigView,
   CairnSnapshot,

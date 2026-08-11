@@ -1,5 +1,5 @@
-# Publishes the three library packages to npm: @cairn/core, @cairn/cli,
-# @cairn/mcp.
+# Publishes the three library packages to npm: @usecairn/core, @usecairn/cli,
+# @usecairn/mcp.
 #
 # This is NOT the desktop release. `release.yml` builds and publishes the Tauri
 # app to GitHub Releases; this workflow only touches the npm registry. Both
@@ -12,13 +12,13 @@
 #     option that packs and validates without touching the registry.
 #
 # Publication order is the dependency order — core → cli → mcp — so that a
-# consumer never resolves @cairn/cli@0.1.0 before @cairn/core@0.1.0 exists.
+# consumer never resolves @usecairn/cli@0.1.0 before @usecairn/core@0.1.0 exists.
 #
 # Re-runs are safe: a version already present on the registry is skipped, not
 # republished (npm forbids overwriting a published version anyway).
 #
 # Required secret: NPM_TOKEN — an npm *granular access token* (Automation) with
-# write access to the @cairn scope. See DEPLOYMENT.md §5.
+# write access to the @usecairn scope. See DEPLOYMENT.md §5.
 
 name: Publish to npm
 
@@ -76,7 +76,7 @@ jobs:
       - name: Build
         run: pnpm -r build
 
-      # Typecheck runs after build: @cairn/cli resolves @cairn/core through its
+      # Typecheck runs after build: @usecairn/cli resolves @usecairn/core through its
       # published types (dist/index.d.ts), which only exist once core is built.
       - name: Typecheck
         run: pnpm -r typecheck
@@ -143,5 +143,16 @@ jobs:
             # --no-git-checks: the tag is already the source of truth, and pnpm
             # would otherwise refuse to publish from a detached HEAD.
             # pnpm rewrites the `workspace:*` deps to the exact version on pack.
-            ( cd "$dir" && pnpm publish --access public --no-git-checks )
+            #
+            # npm answers 404, not 403, on a PUT into a scope the token cannot
+            # write to: it refuses to reveal whether the scope exists at all.
+            # That reads as "the package is missing" and sends people hunting
+            # for the wrong bug, so translate it here into its two real causes.
+            if ! ( cd "$dir" && pnpm publish --access public --no-git-checks ); then
+              echo "::error::Could not publish $name. A 404 or 403 at this step means"
+              echo "::error::the token cannot write to the ${name%%/*} scope: either that"
+              echo "::error::organisation does not exist, or NPM_TOKEN is not scoped to"
+              echo "::error::it. Check the package names against the org you actually own."
+              exit 1
+            fi
           done

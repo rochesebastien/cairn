@@ -1,10 +1,10 @@
-# @cairn/cli
+# @usecairn/cli
 
 The `cairn` command line for [Cairn](https://github.com/rochesebastien/cairn),
 a registry of proven feature intentions committed next to your code.
 
 ```sh
-pnpm add -D @cairn/cli
+pnpm add -D @usecairn/cli
 pnpm exec cairn init          # .cairn/{stones,proofs} + cairn.config.ts
 ```
 

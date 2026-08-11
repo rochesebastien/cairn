@@ -27,7 +27,7 @@ a proven stone may never regress.
 ## Quickstart
 
 ```sh
-pnpm add -D @cairn/cli          # in the project whose features you are registering
+pnpm add -D @usecairn/cli          # in the project whose features you are registering
 pnpm exec cairn init            # .cairn/{stones,proofs} + cairn.config.ts
 ```
 

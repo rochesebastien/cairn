@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
-import { parseStoneFile, type ParsedStoneFile } from "@cairn/core";
+import { parseStoneFile, type ParsedStoneFile } from "@usecairn/core";
 import { createCairnServer } from "../src/server.js";
 
 /* ------------------------------------------------------------- a project */

@@ -1,5 +1,5 @@
 import pc from "picocolors";
-import type { Stone, StoneStatus, Violation } from "@cairn/core";
+import type { Stone, StoneStatus, Violation } from "@usecairn/core";
 import type { Io } from "./io.js";
 
 /** One glyph + colour per status, so a list scans in a glance. */

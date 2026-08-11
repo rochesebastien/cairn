@@ -1,7 +1,7 @@
 /**
- * @cairn/mcp — the cairn, over the Model Context Protocol.
+ * @usecairn/mcp — the cairn, over the Model Context Protocol.
  *
- * The server exposes @cairn/core through eight tools and three resources. It
+ * The server exposes @usecairn/core through eight tools and three resources. It
  * adds no domain logic: it is the door agents knock on, and the one place the
  * acceptance guard-rail is enforced server-side.
  */

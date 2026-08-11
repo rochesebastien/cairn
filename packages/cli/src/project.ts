@@ -12,7 +12,7 @@ import {
   safeParseCairnConfig,
   type CairnConfig,
   type StoneFile,
-} from "@cairn/core";
+} from "@usecairn/core";
 import { z } from "zod";
 import { CliError, usageError } from "./errors.js";
 

@@ -13,7 +13,7 @@ import {
   type StoneFile,
   type StoneStatus,
   type VerifyResult,
-} from "@cairn/core";
+} from "@usecairn/core";
 import pc from "picocolors";
 import { CliError, EXIT, usageError } from "../errors.js";
 import {

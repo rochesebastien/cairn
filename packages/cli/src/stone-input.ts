@@ -1,4 +1,4 @@
-import { lintAcceptance, type Provenance, type Violation } from "@cairn/core";
+import { lintAcceptance, type Provenance, type Violation } from "@usecairn/core";
 import { usageError } from "./errors.js";
 import type { Io } from "./io.js";
 

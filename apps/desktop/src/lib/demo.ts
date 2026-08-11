@@ -7,12 +7,12 @@
  * app says so (the sidebar tags the source `demo`).
  *
  * The demo stones are written as real stone files — serialized with
- * @cairn/core's `serializeStone` and read back with `parseStoneFile` — so the
+ * @usecairn/core's `serializeStone` and read back with `parseStoneFile` — so the
  * browser exercises exactly the parser the CLI uses.
  */
 
-import { parseStoneFile, serializeStone } from "@cairn/core/stone-parse";
-import type { Stone, StoneInput } from "@cairn/core/schema";
+import { parseStoneFile, serializeStone } from "@usecairn/core/stone-parse";
+import type { Stone, StoneInput } from "@usecairn/core/schema";
 import type {
   CairnSnapshot,
   CairnSource,

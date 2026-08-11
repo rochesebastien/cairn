@@ -1,5 +1,5 @@
 {
-  "name": "@cairn/core",
+  "name": "@usecairn/core",
   "version": "0.1.0",
   "description": "Core domain of Cairn: stone schema, frontmatter files, acceptance lint, status transitions, proof integrity.",
   "keywords": [

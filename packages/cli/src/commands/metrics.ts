@@ -11,7 +11,7 @@ import {
   type RunEvent,
   type Share,
   type StoneFile,
-} from "@cairn/core";
+} from "@usecairn/core";
 import pc from "picocolors";
 import { EXIT } from "../errors.js";
 import { printJson, printWarn, renderTable } from "../format.js";
