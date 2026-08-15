@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type JSX } from "react";
 import type { StoneRecord } from "../lib/cairn.js";
 import { useAppState, type Decision } from "../lib/app-state.js";
 import { relativeTime, shortId } from "../lib/format.js";

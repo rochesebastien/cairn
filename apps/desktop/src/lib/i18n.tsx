@@ -12,7 +12,15 @@
  * Everything else — labels, hints, prose — is translated.
  */
 
-import { createContext, Fragment, useCallback, useContext, useMemo, type ReactNode } from "react";
+import {
+  createContext,
+  Fragment,
+  useCallback,
+  useContext,
+  useMemo,
+  type JSX,
+  type ReactNode,
+} from "react";
 
 export type Lang = "en" | "fr";
 

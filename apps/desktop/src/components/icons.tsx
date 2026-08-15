@@ -1,8 +1,10 @@
 /** Hand-drawn icons. 15px stroke set, `currentColor`, no icon library. */
 
+import type { JSX, ReactNode } from "react";
+
 type IconProps = { className?: string | undefined };
 
-function Svg({ children, className }: IconProps & { children: React.ReactNode }): JSX.Element {
+function Svg({ children, className }: IconProps & { children: ReactNode }): JSX.Element {
   return (
     <svg
       className={className}
@@ -50,7 +52,7 @@ export function CairnMark({ className }: IconProps): JSX.Element {
 
 type MarkProps = { className?: string | undefined };
 
-function Mark({ children, className }: MarkProps & { children: React.ReactNode }): JSX.Element {
+function Mark({ children, className }: MarkProps & { children: ReactNode }): JSX.Element {
   return (
     <svg
       className={className}

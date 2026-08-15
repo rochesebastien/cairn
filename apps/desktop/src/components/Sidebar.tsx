@@ -1,3 +1,4 @@
+import type { JSX } from "react";
 import type { StoneRecord, StoneStatus } from "../lib/cairn.js";
 import { countByStatus, repoName } from "../lib/cairn.js";
 import { useAppState } from "../lib/app-state.js";
