@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type JSX } from "react";
 import { useAppState, useCairn, useProvenPulse } from "./lib/app-state.js";
 import { useTheme } from "./lib/theme.js";
 import { useSettings, type Settings } from "./lib/settings.js";

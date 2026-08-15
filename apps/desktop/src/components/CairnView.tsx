@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, type JSX } from "react";
 import type { StoneRecord, StoneStatus } from "../lib/cairn.js";
 import { buildChains, countByStatus, surfacesOf } from "../lib/cairn.js";
 import { relativeTime, shortId } from "../lib/format.js";

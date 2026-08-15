@@ -8,7 +8,7 @@
  * Opens on ⌘K / Ctrl-K or from the sidebar. Arrow keys move, Enter goes.
  */
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type JSX } from "react";
 import type { ViewName } from "./Sidebar.js";
 import { useAllCairns, useAppState } from "../lib/app-state.js";
 import { repoName, type StoneRecord } from "../lib/cairn.js";

@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, type JSX } from "react";
 import { open as openExternal } from "@tauri-apps/plugin-shell";
 import type { CairnSnapshot, StoneRecord } from "../lib/cairn.js";
 import { lineageOf, runHistory } from "../lib/cairn.js";

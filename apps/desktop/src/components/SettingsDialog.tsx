@@ -6,7 +6,7 @@
  * that belongs to a cairn belongs in `.cairn/`, not in a settings pane.
  */
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type JSX, type ReactNode } from "react";
 import { useAllCairns, useAppState } from "../lib/app-state.js";
 import { repoName } from "../lib/cairn.js";
 import type { Settings } from "../lib/settings.js";
@@ -261,11 +261,11 @@ export function SettingsDialog({
 }
 
 /** Wraps every occurrence of a file name in the sentence with the mono voice. */
-function codeAround(text: string, token: string): React.ReactNode[] {
+function codeAround(text: string, token: string): ReactNode[] {
   return text.split(token).flatMap((part, index) => (index === 0 ? [part] : [<code key={index}>{token}</code>, part]));
 }
 
-function Row({ label, hint, children }: { label: string; hint: string; children: React.ReactNode }): JSX.Element {
+function Row({ label, hint, children }: { label: string; hint: string; children: ReactNode }): JSX.Element {
   return (
     <div className="setting-row">
       <div className="setting-text">

@@ -1,6 +1,6 @@
 /** The small shared pieces: status marks, chips, kbd, empty states, view chrome. */
 
-import type { ReactNode } from "react";
+import type { JSX, ReactNode } from "react";
 import type { StoneStatus } from "../lib/cairn.js";
 import { BrokenMark, DraftMark, EscalatedMark, ProvenMark, RetiredMark } from "./icons.js";
 

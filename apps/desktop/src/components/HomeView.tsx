@@ -10,7 +10,7 @@
  * narrow it to one project or one year when you need that.
  */
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, type JSX } from "react";
 import { useAllCairns, useAppState } from "../lib/app-state.js";
 import { repoName, type RunRecord } from "../lib/cairn.js";
 import { useLocale, useT, useTNode, type TranslateFn } from "../lib/i18n.js";

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type JSX } from "react";
 import type { CairnSnapshot, FailureReport, StoneRecord } from "../lib/cairn.js";
 import { absoluteTime, relativeTime, shortId } from "../lib/format.js";
 import { useLocale, useT, type TranslateFn } from "../lib/i18n.js";
